@@ -1111,7 +1111,7 @@ function waShowPaymentOptions(order){
   wrap.className = "chatrow";
   wrap.innerHTML = `<div class="avatar">SG</div><div class="row" style="max-width:78%"></div>`;
   const actions = wrap.querySelector(".row");
-  [["card","💳 Card"],["juice","📱 Juice"],["cash","💵 Cash on delivery"],["bank","🏦 Bank transfer"]].forEach(([m,label])=>{
+  [["card","💳 Card"],["juice","📱 Juice"],["push","📲 Push to phone"],["cash","💵 Cash on delivery"],["bank","🏦 Bank transfer"]].forEach(([m,label])=>{
     const btn = document.createElement("button");
     btn.className = "btn small primary";
     btn.textContent = label;
@@ -1131,15 +1131,17 @@ function waCompletePayment(order, method){
   const lat = -20.1609+(Math.random()-0.5)*0.05, lng = 57.5012+(Math.random()-0.5)*0.05;
   core.pingLocation(delivery.id, lat, lng);
   const eta = estimateDeliveryText();
-  const methodLabel = {card:"Card / Payment Link", juice:"Juice by MCB", cash:"Cash on Delivery", bank:"Bank Transfer"}[method];
+  const methodLabel = {card:"Card / Payment Link", juice:"Juice by MCB", push:"Push to Phone", cash:"Cash on Delivery", bank:"Bank Transfer"}[method];
   const status = method==="cash" ? "Pending (COD)" : "Paid";
+  const customer = db.customers.find(c=>c.id===order.customerId);
+  const pushNote = method==="push" ? `A payment request was pushed to <span class="mono">${customer?customer.phone:"the customer's phone"}</span> — approved on their end.<br>` : "";
 
   const chat = $("#wa-chat");
   const card = document.createElement("div");
   card.className = "feedcard";
   card.innerHTML = `<div class="ficon">${icon("wallet")}</div><div class="fbody">
     <div class="ftitle">Invoice ${invoice.ledgerId} · ${status}</div>
-    <div class="fdetail">Paid via ${methodLabel}. Delivery <span class="mono">${delivery.id}</span> created and assigned to <b>${driver.name}</b> — est. delivery ${eta}.</div>
+    <div class="fdetail">${pushNote}Paid via ${methodLabel}. Delivery <span class="mono">${delivery.id}</span> created and assigned to <b>${driver.name}</b> — est. delivery ${eta}.</div>
     <div class="flink"><button class="linklike" data-goto="driverapp">Open Driver App ↗</button> <button class="linklike" data-goto="delivery">Open Delivery tab ↗</button></div>
   </div>`;
   chat.appendChild(card);
