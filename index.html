@@ -449,6 +449,27 @@ tbody tr:hover{background:var(--panel-2)}
   </section>
 
   <section id="tab-orders" class="tab">
+    <div class="card section">
+      <h2 data-icon="box">New order — walk-in / manual entry</h2>
+      <p class="desc">For a customer standing at the counter, or an order phoned in, taken on Facebook/Instagram, or from any channel without its own webhook yet. Writes into the exact same core Order pipeline as WhatsApp.</p>
+      <div class="row" style="margin-bottom:8px">
+        <select id="new-ord-source">
+          <option value="in-store">In-store (walk-in)</option>
+          <option value="facebook">Facebook</option>
+          <option value="instagram">Instagram</option>
+          <option value="website">Website</option>
+          <option value="phone">Phone order</option>
+        </select>
+        <input id="new-ord-customer" placeholder="Customer name" style="width:150px">
+        <input id="new-ord-phone" placeholder="Phone (optional)" style="width:150px">
+      </div>
+      <div class="row">
+        <select id="new-ord-product" style="flex:1;min-width:180px"></select>
+        <input id="new-ord-qty" type="number" value="1" min="1" style="width:70px">
+        <button class="btn primary" id="new-ord-add">Create order</button>
+      </div>
+      <div id="new-ord-result" style="margin-top:12px"></div>
+    </div>
     <div class="card">
       <h2 data-icon="receipt">All orders</h2>
       <p class="desc">WhatsApp, website and in-store orders share one pipeline, so Delivery and Finance never need to know where an order came from.</p>
@@ -1026,6 +1047,11 @@ function renderInventory(){
 }
 
 function renderOrders(){
+  const prodSel = $("#new-ord-product");
+  const prevProd = prodSel.value;
+  prodSel.innerHTML = db.products.map(p=>`<option value="${p.id}">${p.name} — Rs ${p.price} (${currentStock(p)} in stock)</option>`).join("");
+  if(prevProd && db.products.some(p=>p.id===prevProd)) prodSel.value = prevProd;
+
   $("#ord-table tbody").innerHTML = db.orders.slice().reverse().map(o=>{
     const delivery = db.deliveries.find(d=>d.orderId===o.id);
     let action;
@@ -1473,24 +1499,9 @@ function estimateDeliveryText(){
    confirms + invoices the order AND creates + assigns a delivery, so it's immediately visible
    in the Delivery tab and the Driver App tab: this is the core-entity link the whole platform
    is built around, not a separate WhatsApp-only order. */
-function waShowPaymentOptions(order){
-  const chat = $("#wa-chat");
-  const wrap = document.createElement("div");
-  wrap.className = "chatrow";
-  wrap.innerHTML = `<div class="avatar">SG</div><div class="row" style="max-width:78%"></div>`;
-  const actions = wrap.querySelector(".row");
-  [["card","💳 Card"],["juice","📱 Juice"],["push","📲 Push to phone"],["cash","💵 Cash on delivery"],["bank","🏦 Bank transfer"]].forEach(([m,label])=>{
-    const btn = document.createElement("button");
-    btn.className = "btn small primary";
-    btn.textContent = label;
-    btn.addEventListener("click", ()=>{ wrap.remove(); waCompletePayment(order, m); });
-    actions.appendChild(btn);
-  });
-  chat.appendChild(wrap);
-  chat.scrollTop = chat.scrollHeight;
-}
-
-function waCompletePayment(order, method){
+/* Shared checkout core — every order, whatever its source (WhatsApp, Facebook, Instagram,
+   walk-in, phone), routes through the exact same payment gateway and core writes. */
+function completeOrderPayment(order, method){
   const {invoice} = finConfirmAndInvoice(order.id, method);
   if(method!=="cash") finMarkPaid(invoice.ledgerId);
   const delivery = core.createDelivery({orderId: order.id});
@@ -1502,6 +1513,29 @@ function waCompletePayment(order, method){
   const eta = estimateDeliveryText();
   const methodLabel = PAYMENT_METHOD_LABEL[method];
   const status = method==="cash" ? "Pending (COD)" : "Paid";
+  return {invoice, delivery, driver, eta, methodLabel, status};
+}
+const PAYMENT_METHODS = [["card","💳 Card"],["juice","📱 Juice"],["push","📲 Push to phone"],["cash","💵 Cash on delivery"],["bank","🏦 Bank transfer"]];
+
+function waShowPaymentOptions(order){
+  const chat = $("#wa-chat");
+  const wrap = document.createElement("div");
+  wrap.className = "chatrow";
+  wrap.innerHTML = `<div class="avatar">SG</div><div class="row" style="max-width:78%"></div>`;
+  const actions = wrap.querySelector(".row");
+  PAYMENT_METHODS.forEach(([m,label])=>{
+    const btn = document.createElement("button");
+    btn.className = "btn small primary";
+    btn.textContent = label;
+    btn.addEventListener("click", ()=>{ wrap.remove(); waCompletePayment(order, m); });
+    actions.appendChild(btn);
+  });
+  chat.appendChild(wrap);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function waCompletePayment(order, method){
+  const {invoice, delivery, driver, eta, methodLabel, status} = completeOrderPayment(order, method);
   const customer = db.customers.find(c=>c.id===order.customerId);
   const pushNote = method==="push" ? `A payment request was pushed to <span class="mono">${customer?customer.phone:"the customer's phone"}</span> — approved on their end.<br>` : "";
 
@@ -1518,6 +1552,51 @@ function waCompletePayment(order, method){
   chat.scrollTop = chat.scrollHeight;
   renderAll();
 }
+
+/* New Order panel (manual entry — walk-in, Facebook, Instagram, phone) */
+function ordShowPaymentOptions(order){
+  const box = $("#new-ord-result");
+  const wrap = document.createElement("div");
+  wrap.className = "row";
+  wrap.style.marginBottom = "10px";
+  PAYMENT_METHODS.forEach(([m,label])=>{
+    const btn = document.createElement("button");
+    btn.className = "btn small primary";
+    btn.textContent = label;
+    btn.addEventListener("click", ()=>{ wrap.remove(); ordCompletePayment(order, m); });
+    wrap.appendChild(btn);
+  });
+  box.innerHTML = `<p class="desc" style="margin-bottom:8px">Order <span class="mono">${order.id}</span> created for <b>${customerName(order.customerId)}</b>, Rs ${order.total}. How did they pay?</p>`;
+  box.appendChild(wrap);
+}
+function ordCompletePayment(order, method){
+  const {invoice, delivery, driver, eta, methodLabel, status} = completeOrderPayment(order, method);
+  const box = $("#new-ord-result");
+  const card = document.createElement("div");
+  card.className = "feedcard";
+  card.innerHTML = `<div class="ficon">${icon("wallet")}</div><div class="fbody">
+    <div class="ftitle">Invoice ${invoice.ledgerId} · ${status}</div>
+    <div class="fdetail">Order <span class="mono">${order.id}</span> (${order.source}) paid via ${methodLabel}. Delivery <span class="mono">${delivery.id}</span> created and assigned to <b>${driver.name}</b> — est. delivery ${eta}.</div>
+    <div class="flink"><button class="linklike" data-goto="driverapp">Open Driver App ↗</button> <button class="linklike" data-goto="delivery">Open Delivery tab ↗</button></div>
+  </div>`;
+  box.innerHTML = "";
+  box.appendChild(card);
+  card.querySelectorAll("[data-goto]").forEach(b=>b.addEventListener("click", e=>goTab(e.target.dataset.goto)));
+  renderAll();
+}
+$("#new-ord-add").addEventListener("click", ()=>{
+  const source = $("#new-ord-source").value;
+  const name = $("#new-ord-customer").value.trim();
+  const phone = $("#new-ord-phone").value.trim() || `${source}-${Date.now()}`;
+  const productId = $("#new-ord-product").value;
+  const qty = Math.max(1, Number($("#new-ord-qty").value)||1);
+  if(!name || !productId) return;
+  const customer = core.findOrCreateCustomer({name, phone});
+  const order = core.createOrder({customerId: customer.id, items:[{productId, qty}], source, status:"pending"});
+  $("#new-ord-customer").value = ""; $("#new-ord-phone").value = ""; $("#new-ord-qty").value = "1";
+  ordShowPaymentOptions(order);
+  renderAll();
+});
 
 function waSendMessage(overrideText){
   const phone = $("#wa-phone").value.trim(), name = $("#wa-name").value.trim();
