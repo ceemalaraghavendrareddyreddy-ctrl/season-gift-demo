@@ -105,6 +105,7 @@ tr:last-child td{border-bottom:none}
 .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:600}
 .badge.pending,.badge.picked_up,.badge.en_route{background:var(--warn-soft);color:var(--warn)}
 .badge.confirmed,.badge.delivered,.badge.paid{background:var(--ok-soft);color:var(--ok)}
+.badge.fulfilled{background:var(--info-soft);color:var(--info)}
 .badge.unassigned{background:var(--line);color:var(--muted)}
 .badge.assigned{background:var(--info-soft);color:var(--info)}
 .badge.failed{background:var(--bad-soft);color:var(--bad)}
@@ -501,7 +502,20 @@ const core = {
   },
   listDeliveries: () => db.deliveries,
   getDelivery: (id) => db.deliveries.find(d=>d.id===id),
-  updateDeliveryStatus(id, status){ const d=core.getDelivery(id); if(!d) throw new Error("not found"); d.status=status; return d; },
+  updateDeliveryStatus(id, status){
+    const d=core.getDelivery(id); if(!d) throw new Error("not found");
+    const wasDelivered = d.status === "delivered";
+    d.status = status;
+    if(status === "delivered" && !wasDelivered){
+      // Proof-of-delivery capture and order completion are one event, not two —
+      // wherever a delivery is marked delivered (driver app, dispatch table, golden path),
+      // both happen automatically off the same core write.
+      if(!d.proof) d.proof = {type:"photo", note:"Auto-captured on delivery", at: nowISO()};
+      const order = core.getOrder(d.orderId);
+      if(order && order.status !== "fulfilled") order.status = "fulfilled";
+    }
+    return d;
+  },
   assignDriver(id, driverId){ const d=core.getDelivery(id); if(!d) throw new Error("not found"); d.driverId=driverId; d.status="assigned"; return d; },
   pingLocation(id, lat, lng){ const d=core.getDelivery(id); if(!d) throw new Error("not found"); d.location={lat,lng,at:nowISO()}; return d; },
   attachProof(id, proof){ const d=core.getDelivery(id); if(!d) throw new Error("not found"); d.proof=proof; return d; },
@@ -624,7 +638,7 @@ function renderOverview(){
   const stats = [
     ["Orders total", orders.length, "receipt", "accent"],
     ["Pending orders", orders.filter(o=>o.status==="pending").length, "alert", "warn"],
-    ["Confirmed revenue (Rs)", orders.filter(o=>o.status==="confirmed").reduce((s,o)=>s+o.total,0), "wallet", "ok"],
+    ["Confirmed revenue (Rs)", orders.filter(o=>o.status==="confirmed"||o.status==="fulfilled").reduce((s,o)=>s+o.total,0), "wallet", "ok"],
     ["Low-stock products", products.filter(p=>p.stock<=p.reorderThreshold).length, "box", "warn"],
     ["Active deliveries", deliveries.filter(d=>!["delivered","failed"].includes(d.status)).length, "truck", "info"],
     ["Reviews collected", db.reviews.length, "star", "ok"],
@@ -732,7 +746,7 @@ function runGoldenStep(n){
     const delivery = deliveries.find(d=>["assigned","picked_up","en_route"].includes(d.status));
     if(!delivery) return;
     core.updateDeliveryStatus(delivery.id, "delivered");
-    gpLog("check", "Marked as delivered", `Delivery <span class="mono">${delivery.id}</span> is now delivered — the customer's tracking page updates instantly.`, "delivery");
+    gpLog("check", "Marked as delivered", `Delivery <span class="mono">${delivery.id}</span> is now delivered — proof-of-delivery was auto-captured and the order flipped to <b>fulfilled</b>, visible immediately in Orders and on the customer's tracking page.`, "orders");
   } else if(n===6){
     const delivery = deliveries.find(d=>d.status==="delivered");
     if(!delivery) return;
@@ -778,14 +792,28 @@ function renderInventory(){
 }
 
 function renderOrders(){
-  $("#ord-table tbody").innerHTML = db.orders.slice().reverse().map(o=>`<tr>
-    <td class="mono">${o.id}</td><td>${o.source}</td><td>${customerName(o.customerId)}</td><td>${o.total}</td>
-    <td><span class="badge ${o.status}">${o.status}</span></td>
-    <td>${o.status==="pending"?`<button class="btn small primary" data-confirm="${o.id}">Confirm + invoice</button>`:""}
-      <button class="btn small" data-mkdel="${o.id}">Create delivery</button></td>
-  </tr>`).join("") || `<tr><td colspan="6" class="muted">No orders yet.</td></tr>`;
+  $("#ord-table tbody").innerHTML = db.orders.slice().reverse().map(o=>{
+    const delivery = db.deliveries.find(d=>d.orderId===o.id);
+    let action;
+    if(o.status==="pending"){
+      action = `<button class="btn small primary" data-confirm="${o.id}">Confirm + invoice</button>`;
+    } else if(o.status==="fulfilled"){
+      action = `<button class="linklike" data-proof="${delivery?delivery.id:''}">${icon("check")} Proof captured — view ↗</button>`;
+    } else if(delivery){
+      action = `<button class="linklike" data-track="${delivery.id}">${icon("pin")} Track ↗</button>`;
+    } else {
+      action = `<button class="btn small" data-mkdel="${o.id}">Create delivery</button>`;
+    }
+    return `<tr>
+      <td class="mono">${o.id}</td><td>${o.source}</td><td>${customerName(o.customerId)}</td><td>${o.total}</td>
+      <td><span class="badge ${o.status}">${o.status}</span></td>
+      <td>${action}</td>
+    </tr>`;
+  }).join("") || `<tr><td colspan="6" class="muted">No orders yet.</td></tr>`;
   $$("#ord-table [data-confirm]").forEach(btn=>btn.addEventListener("click", e=>{ finConfirmAndInvoice(e.target.dataset.confirm); renderAll(); }));
   $$("#ord-table [data-mkdel]").forEach(btn=>btn.addEventListener("click", e=>{ core.createDelivery({orderId:e.target.dataset.mkdel}); renderAll(); goTab("delivery"); }));
+  $$("#ord-table [data-track]").forEach(btn=>btn.addEventListener("click", e=>openTracking(e.target.closest("[data-track]").dataset.track)));
+  $$("#ord-table [data-proof]").forEach(btn=>btn.addEventListener("click", e=>openTracking(e.target.closest("[data-proof]").dataset.proof)));
 }
 
 function renderDelivery(){
@@ -925,14 +953,18 @@ function openTracking(deliveryId){
   const order = core.getOrder(d.orderId);
   const driver = d.driverId ? driverName(d.driverId) : "Not yet assigned";
   const loc = d.location ? `${d.location.lat.toFixed(4)}, ${d.location.lng.toFixed(4)} <span class="muted">· as of ${new Date(d.location.at).toLocaleTimeString()}</span>` : "Not available yet";
+  const proofLine = d.proof
+    ? `<p>${icon("check")} <b>Proof of delivery:</b> captured ${new Date(d.proof.at).toLocaleString()} <span class="muted">(${d.proof.note})</span></p>`
+    : (d.status==="delivered" ? `` : `<p class="muted">Proof of delivery is captured automatically once the order is marked delivered.</p>`);
   showModal(`
     <h2>Track your order</h2>
     <p class="desc">This is the page a customer opens from a WhatsApp link or the website — it reads the same GPS feed the driver app writes.</p>
     ${buildMiniMap(d.location?.lat, d.location?.lng, d.status!=="delivered")}
     <p style="margin-top:12px"><b>Order</b> <span class="mono">${order?order.id:d.orderId}</span></p>
-    <p><span class="badge ${d.status}">${d.status.replace("_"," ")}</span></p>
+    <p><span class="badge ${d.status}">${d.status.replace("_"," ")}</span> ${order && order.status==="fulfilled" ? `<span class="badge fulfilled">order fulfilled</span>` : ""}</p>
     <p><b>Driver:</b> ${driver}</p>
     <p><b>Last known location:</b><br>${loc}</p>
+    ${proofLine}
   `);
 }
 function openReview(deliveryId){
@@ -987,11 +1019,15 @@ function renderDriverApp(){
 
   const myDeliveries = db.deliveries.filter(d=>d.driverId===driverId && d.status!=="failed");
   const active = myDeliveries.filter(d=>d.status!=="delivered");
+  const completed = myDeliveries.filter(d=>d.status==="delivered").slice().reverse().slice(0,4);
   const screen = $("#phone-screen");
   if(!driver){ screen.innerHTML = `<p class="muted" style="font-size:12px">No drivers configured.</p>`; return; }
 
   const nextAction = {unassigned:"picked_up", assigned:"picked_up", picked_up:"en_route", en_route:"delivered"};
   const nextLabel = {picked_up:"Mark picked up", en_route:"Start en route", delivered:"Mark delivered"};
+  const gpsLine = d => d.location
+    ? `<div class="muted" style="font-size:11px;margin-top:6px">${icon("pin")} ${d.location.lat.toFixed(4)}, ${d.location.lng.toFixed(4)} · ${new Date(d.location.at).toLocaleTimeString()}</div>`
+    : `<div class="muted" style="font-size:11px;margin-top:6px">${icon("pin")} No GPS ping yet</div>`;
 
   screen.innerHTML = `
     <div class="phead"><b>${driver.name}</b><span class="pdot" title="Online"></span></div>
@@ -1006,12 +1042,20 @@ function renderDriverApp(){
             <div class="dactions">
               ${next ? `<button class="btn small primary" data-dnext="${d.id}" data-next="${next}">${nextLabel[next]}</button>` : ""}
               <button class="btn small" data-dping="${d.id}">${icon("pin")} Ping GPS</button>
-              ${d.status==="en_route" ? `<button class="btn small" data-dproof="${d.id}">${icon("camera")} Proof</button>` : ""}
             </div>
-            ${d.proof ? `<div class="muted" style="font-size:11px;margin-top:6px">${icon("check")} Proof captured</div>` : ""}
+            ${gpsLine(d)}
           </div>`;
         }).join("")
     }
+    ${completed.length ? `<h3 class="eyebrow" style="margin:14px 0 8px">Completed today</h3>` + completed.map(d=>{
+      const order = core.getOrder(d.orderId);
+      return `<div class="dcard">
+        <div class="dtop"><span class="mono">${d.id}</span><span class="badge fulfilled">order fulfilled</span></div>
+        <div class="daddr">Order ${order?order.id:d.orderId} · ${order?productNames(order.items):""}</div>
+        <div class="muted" style="font-size:11px;margin-top:4px">${icon("check")} Proof auto-captured ${d.proof?new Date(d.proof.at).toLocaleTimeString():""}</div>
+        <button class="linklike" style="font-size:11.5px;margin-top:6px" data-dorder="${d.orderId}">Open Orders tab ↗</button>
+      </div>`;
+    }).join("") : ""}
   `;
   $$("#phone-screen [data-dnext]").forEach(btn=>btn.addEventListener("click", e=>{
     core.updateDeliveryStatus(e.target.closest("[data-dnext]").dataset.dnext, e.target.closest("[data-dnext]").dataset.next);
@@ -1023,11 +1067,7 @@ function renderDriverApp(){
     core.pingLocation(id, lat, lng);
     renderAll();
   }));
-  $$("#phone-screen [data-dproof]").forEach(btn=>btn.addEventListener("click", e=>{
-    const id = e.target.closest("[data-dproof]").dataset.dproof;
-    core.attachProof(id, {type:"photo", note:"Captured via driver app", at:nowISO()});
-    renderAll();
-  }));
+  $$("#phone-screen [data-dorder]").forEach(btn=>btn.addEventListener("click", ()=>goTab("orders")));
 }
 $("#driver-select").addEventListener("change", renderDriverApp);
 
@@ -1048,6 +1088,66 @@ function renderAll(){
   renderOverview(); renderWhatsapp(); renderInventory(); renderOrders(); renderDelivery(); renderDriverApp(); renderFinance(); renderReviews();
 }
 
+/* Approx delivery window — same-day if ordered before 3pm, else next morning */
+function estimateDeliveryText(){
+  const now = new Date();
+  const eta = new Date(now);
+  if(now.getHours() < 15){
+    eta.setHours(now.getHours()+3, 0, 0, 0);
+    return 'Today, by ' + eta.toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
+  }
+  eta.setDate(eta.getDate()+1);
+  eta.setHours(11, 0, 0, 0);
+  return 'Tomorrow, by ' + eta.toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
+}
+
+/* Payment options offered right in the WhatsApp chat, same as a real checkout — completing one
+   confirms + invoices the order AND creates + assigns a delivery, so it's immediately visible
+   in the Delivery tab and the Driver App tab: this is the core-entity link the whole platform
+   is built around, not a separate WhatsApp-only order. */
+function waShowPaymentOptions(order){
+  const chat = $("#wa-chat");
+  const wrap = document.createElement("div");
+  wrap.className = "chatrow";
+  wrap.innerHTML = `<div class="avatar">SG</div><div class="row" style="max-width:78%"></div>`;
+  const actions = wrap.querySelector(".row");
+  [["card","💳 Card"],["juice","📱 Juice"],["cash","💵 Cash on delivery"],["bank","🏦 Bank transfer"]].forEach(([m,label])=>{
+    const btn = document.createElement("button");
+    btn.className = "btn small primary";
+    btn.textContent = label;
+    btn.addEventListener("click", ()=>{ wrap.remove(); waCompletePayment(order, m); });
+    actions.appendChild(btn);
+  });
+  chat.appendChild(wrap);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function waCompletePayment(order, method){
+  const {invoice} = finConfirmAndInvoice(order.id);
+  const delivery = core.createDelivery({orderId: order.id});
+  const drivers = core.listUsers("driver");
+  const driver = drivers[driverRotation % drivers.length]; driverRotation++;
+  core.assignDriver(delivery.id, driver.id);
+  const lat = -20.1609+(Math.random()-0.5)*0.05, lng = 57.5012+(Math.random()-0.5)*0.05;
+  core.pingLocation(delivery.id, lat, lng);
+  const eta = estimateDeliveryText();
+  const methodLabel = {card:"Card / Payment Link", juice:"Juice by MCB", cash:"Cash on Delivery", bank:"Bank Transfer"}[method];
+  const status = method==="cash" ? "Pending (COD)" : "Paid";
+
+  const chat = $("#wa-chat");
+  const card = document.createElement("div");
+  card.className = "feedcard";
+  card.innerHTML = `<div class="ficon">${icon("wallet")}</div><div class="fbody">
+    <div class="ftitle">Invoice ${invoice.ledgerId} · ${status}</div>
+    <div class="fdetail">Paid via ${methodLabel}. Delivery <span class="mono">${delivery.id}</span> created and assigned to <b>${driver.name}</b> — est. delivery ${eta}.</div>
+    <div class="flink"><button class="linklike" data-goto="driverapp">Open Driver App ↗</button> <button class="linklike" data-goto="delivery">Open Delivery tab ↗</button></div>
+  </div>`;
+  chat.appendChild(card);
+  card.querySelectorAll("[data-goto]").forEach(b=>b.addEventListener("click", e=>goTab(e.target.dataset.goto)));
+  chat.scrollTop = chat.scrollHeight;
+  renderAll();
+}
+
 $("#wa-send").addEventListener("click", ()=>{
   const phone = $("#wa-phone").value.trim(), name = $("#wa-name").value.trim(), message = $("#wa-message").value.trim();
   if(!phone || !message) return;
@@ -1065,6 +1165,7 @@ $("#wa-send").addEventListener("click", ()=>{
       <div class="bubble">${escapeHtml(result.reply)}<span class="meta">${time} · Season Gift AI</span></div>
     </div>`);
   chat.scrollTop = chat.scrollHeight;
+  if(result.order) waShowPaymentOptions(result.order);
   $("#wa-message").value = "";
   renderAll();
 });
