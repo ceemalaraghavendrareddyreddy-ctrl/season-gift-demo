@@ -336,6 +336,21 @@ tbody tr:hover{background:var(--panel-2)}
 .dslip-row{display:flex;justify-content:space-between;gap:10px;padding:3px 0}
 .dslip-row .muted{flex:none;font-size:11px;text-transform:uppercase;letter-spacing:.03em}
 .dslip-barcode{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}
+
+.stmt-row{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}
+.stmt-row:last-child{border-bottom:none}
+.stmt-row.total{font-weight:700;border-top:2px solid var(--ink);border-bottom:none;padding-top:9px;margin-top:2px}
+.stmt-col h3.eyebrow{margin-top:0}
+.method-row{display:flex;align-items:center;gap:10px;padding:7px 0}
+.method-row .m-label{width:150px;flex:none;font-size:12.5px}
+.method-row .m-bar-wrap{flex:1;height:8px;background:var(--panel-2);border-radius:99px;overflow:hidden}
+.method-row .m-bar{height:100%;background:var(--accent);border-radius:99px}
+.method-row .m-amt{width:110px;flex:none;text-align:right;font-size:12.5px;font-variant-numeric:tabular-nums}
+
+.demo-banner{background:var(--warn-soft);border:1px solid var(--warn);border-left-width:4px}
+.demo-banner p{margin:0 0 6px;font-size:13px;line-height:1.5;color:var(--ink)}
+.demo-banner p:last-child{margin-bottom:0}
+.demo-banner b{color:var(--warn)}
 </style>
 </head>
 <body>
@@ -486,12 +501,63 @@ tbody tr:hover{background:var(--panel-2)}
   </section>
 
   <section id="tab-finance" class="tab">
+    <div class="card section demo-banner">
+      <p><b>DEMO ONLY</b> — the Profit &amp; Loss, balance sheet and MRA tax figures below are illustrative, built live from this demo's own data so you can see the shape of the reports.</p>
+      <p><b>In the real platform, this is not rebuilt here.</b> Detailed financial statements, tax filing and full bookkeeping stay in <b>Ledger Book</b> — this module only pushes invoice data to it via API, per Section 4 of the platform plan.</p>
+    </div>
+    <div class="grid cols-4 section" id="fin-stats"></div>
+    <div class="grid cols-2">
+      <div class="card section">
+        <h2 data-icon="log">Revenue by payment method</h2>
+        <p class="desc">Every WhatsApp checkout tags its invoice with how it was paid — same Ledger Book records, just grouped here.</p>
+        <div id="fin-methods"></div>
+      </div>
+      <div class="card section">
+        <h2 data-icon="alert">Overdue alerts</h2>
+        <div id="fin-overdue" class="muted">—</div>
+      </div>
+    </div>
     <div class="card section">
       <h2 data-icon="wallet">Invoices</h2>
       <p class="desc">A synced read replica of Ledger Book — not a second source of truth for money.</p>
-      <div class="tablewrap"><table id="fin-invoices"><thead><tr><th>Ledger ID</th><th>Order</th><th>Amount (Rs)</th><th>Status</th><th>Issued</th><th></th></tr></thead><tbody></tbody></table></div>
+      <div class="tablewrap"><table id="fin-invoices"><thead><tr><th>Ledger ID</th><th>Order</th><th>Amount (Rs)</th><th>Method</th><th>Status</th><th>Issued</th><th></th></tr></thead><tbody></tbody></table></div>
     </div>
-    <div class="card"><h2 data-icon="alert">Overdue alerts</h2><div id="fin-overdue" class="muted">—</div></div>
+    <div class="card section">
+      <h2 data-icon="box">Purchases &amp; operating expenses</h2>
+      <p class="desc">Purchases are logged automatically whenever you restock in Inventory (at an assumed 55% wholesale cost). Add other expenses manually below.</p>
+      <div class="row" style="margin-bottom:12px">
+        <select id="exp-category">
+          <option>Salaries</option>
+          <option>Rent</option>
+          <option>Utilities</option>
+          <option>Marketing</option>
+          <option>Other</option>
+        </select>
+        <input id="exp-desc" placeholder="Description" style="flex:1;min-width:160px">
+        <input id="exp-amount" type="number" placeholder="Amount (Rs)" style="width:120px">
+        <button class="btn primary" id="exp-add">Add expense</button>
+      </div>
+      <div class="tablewrap"><table id="fin-expenses"><thead><tr><th>When</th><th>Category</th><th>Description</th><th>Amount (Rs)</th></tr></thead><tbody></tbody></table></div>
+    </div>
+    <div class="card section">
+      <h2 data-icon="wallet">Profit &amp; Loss statement</h2>
+      <p class="desc">Revenue from invoices, less Cost of Goods Sold and operating expenses — then MRA-style VAT and corporate tax, same as a real Mauritius small business would file.</p>
+      <div id="fin-pl"></div>
+    </div>
+    <div class="card">
+      <h2 data-icon="log">Balance sheet (snapshot)</h2>
+      <p class="desc">Built live from real demo data — inventory value from the Inventory tab, cash and receivables from actual invoices. No fabricated numbers.</p>
+      <div class="grid cols-2">
+        <div class="stmt-col">
+          <h3 class="eyebrow">Assets</h3>
+          <div id="fin-assets"></div>
+        </div>
+        <div class="stmt-col">
+          <h3 class="eyebrow">Liabilities &amp; Equity</h3>
+          <div id="fin-liab-equity"></div>
+        </div>
+      </div>
+    </div>
   </section>
 
   <section id="tab-reviews" class="tab">
@@ -545,11 +611,17 @@ const db = {
   invoices: [],
   reviews: [],
   stockAudit: [],
+  expenses: [
+    {id:"exp-0001", category:"Salaries",  description:"Staff salaries — September", amount:45000, at:"2026-09-01T09:00:00.000Z"},
+    {id:"exp-0002", category:"Rent",      description:"Main Store rent",            amount:15000, at:"2026-09-01T09:00:00.000Z"},
+    {id:"exp-0003", category:"Utilities", description:"Electricity & water",        amount:3200,  at:"2026-09-03T09:00:00.000Z"},
+    {id:"exp-0004", category:"Marketing", description:"Facebook & Instagram ads",   amount:2500,  at:"2026-09-05T09:00:00.000Z"},
+  ],
 };
 
 const ledgerBook = {
-  createInvoice(order){
-    return {ledgerId:`LB-${order.id}`, orderId: order.id, amount: order.total, status:"pending", issuedAt: nowISO()};
+  createInvoice(order, method){
+    return {ledgerId:`LB-${order.id}`, orderId: order.id, amount: order.total, status:"pending", method: method||null, issuedAt: nowISO()};
   }
 };
 
@@ -686,21 +758,25 @@ function waSimulate({phone, name, message}){
 }
 
 // ---------------- Inventory module ----------------
+const WHOLESALE_COST_RATIO = 0.55; // assumed supplier cost as a share of retail price, for COGS
 function invRestock(productId, qty){
   const p = db.products.find(p=>p.id===productId); if(!p) return;
   const before = currentStock(p); p.received += qty;
   db.stockAudit.push({id:nextId("man"), productId:p.id, change:qty, before, after:currentStock(p), reason:"stock received into warehouse", at:nowISO()});
+  const cost = Math.round(p.price * WHOLESALE_COST_RATIO * qty);
+  db.expenses.push({id:nextId("exp"), category:"Purchases", description:`Stock received — ${qty} x ${p.name}`, amount:cost, at:nowISO()});
   return p;
 }
 
 // ---------------- Finance module ----------------
-function finConfirmAndInvoice(orderId){
+function finConfirmAndInvoice(orderId, method){
   const order = core.confirmOrder(orderId);
-  const invoice = ledgerBook.createInvoice(order);
+  const invoice = ledgerBook.createInvoice(order, method);
   db.invoices.push(invoice);
   return {order, invoice};
 }
 function finMarkPaid(ledgerId){ const inv = db.invoices.find(i=>i.ledgerId===ledgerId); if(inv) inv.status="paid"; return inv; }
+const PAYMENT_METHOD_LABEL = {card:"Card / Payment Link", juice:"Juice by MCB", push:"Push to Phone", cash:"Cash on Delivery", bank:"Bank Transfer", null:"Manual / unspecified"};
 
 // ---------------- Delivery module ----------------
 function routeSequence(stops, start){
@@ -1012,16 +1088,112 @@ $("#seq-run").addEventListener("click", ()=>{
 $("#track-open").addEventListener("click", ()=>{ const id=$("#track-select").value; if(id) openTracking(id); });
 
 function renderFinance(){
-  $("#fin-invoices tbody").innerHTML = db.invoices.slice().reverse().map(i=>`<tr>
+  const invoices = db.invoices;
+  const paid = invoices.filter(i=>i.status==="paid");
+  const pending = invoices.filter(i=>i.status==="pending");
+  const totalRevenue = invoices.reduce((s,i)=>s+i.amount,0);
+  const totalPaid = paid.reduce((s,i)=>s+i.amount,0);
+  const totalPending = pending.reduce((s,i)=>s+i.amount,0);
+  const cutoff = 1000*60*60*24*7;
+  const overdue = pending.filter(i=>Date.now()-new Date(i.issuedAt).getTime()>cutoff);
+  const totalOverdue = overdue.reduce((s,i)=>s+i.amount,0);
+
+  $("#fin-stats").innerHTML = [
+    ["Total revenue (Rs)", totalRevenue, "wallet", "accent"],
+    ["Collected (Rs)", totalPaid, "check", "ok"],
+    ["Outstanding (Rs)", totalPending, "receipt", "warn"],
+    ["Overdue (Rs)", totalOverdue, "alert", "bad"],
+  ].map(([l,v,ic,c])=>`
+    <div class="card stat c-${c}">
+      <div class="stat-top"><div class="label">${l}</div><div class="icon-chip">${icon(ic)}</div></div>
+      <div class="value ${String(v).length>6?'small':''}">${v}</div>
+    </div>`).join("");
+
+  // Revenue by payment method — every WhatsApp checkout tags its invoice with how it was paid
+  const methodTotals = {};
+  invoices.forEach(i=>{ const key=i.method||"null"; methodTotals[key]=(methodTotals[key]||0)+i.amount; });
+  const maxMethod = Math.max(1, ...Object.values(methodTotals));
+  const methodKeys = Object.keys(methodTotals);
+  $("#fin-methods").innerHTML = methodKeys.length ? methodKeys.map(k=>`
+    <div class="method-row">
+      <div class="m-label">${PAYMENT_METHOD_LABEL[k]}</div>
+      <div class="m-bar-wrap"><div class="m-bar" style="width:${(methodTotals[k]/maxMethod*100).toFixed(0)}%"></div></div>
+      <div class="m-amt">Rs ${methodTotals[k]}</div>
+    </div>`).join("") : `<p class="muted">No paid or pending invoices yet.</p>`;
+
+  $("#fin-invoices tbody").innerHTML = invoices.slice().reverse().map(i=>`<tr>
     <td class="mono">${i.ledgerId}</td><td class="mono">${i.orderId}</td><td>${i.amount}</td>
+    <td>${PAYMENT_METHOD_LABEL[i.method||"null"]}</td>
     <td><span class="badge ${i.status}">${i.status}</span></td><td>${new Date(i.issuedAt).toLocaleString()}</td>
     <td>${i.status==="pending"?`<button class="btn small" data-pay="${i.ledgerId}">Mark paid</button>`:""}</td>
-  </tr>`).join("") || `<tr><td colspan="6" class="muted">No invoices yet.</td></tr>`;
+  </tr>`).join("") || `<tr><td colspan="7" class="muted">No invoices yet.</td></tr>`;
   $$("#fin-invoices [data-pay]").forEach(btn=>btn.addEventListener("click", e=>{ finMarkPaid(e.target.dataset.pay); renderAll(); }));
-  const cutoff = 1000*60*60*24*7;
-  const overdue = db.invoices.filter(i=>i.status==="pending" && Date.now()-new Date(i.issuedAt).getTime()>cutoff);
-  $("#fin-overdue").textContent = overdue.length ? `${overdue.length} invoice(s) overdue.` : "No overdue invoices.";
+  $("#fin-overdue").textContent = overdue.length ? `${overdue.length} invoice(s) overdue, totalling Rs ${totalOverdue}.` : "No overdue invoices.";
+
+  // ---- Expenses ledger (Purchases auto-logged from restocking + manual entries) ----
+  const expenses = db.expenses;
+  $("#fin-expenses tbody").innerHTML = expenses.slice().reverse().map(e=>`<tr>
+    <td>${new Date(e.at).toLocaleDateString()}</td><td>${e.category}</td><td>${e.description}</td><td>${e.amount}</td>
+  </tr>`).join("") || `<tr><td colspan="4" class="muted">No expenses logged yet.</td></tr>`;
+
+  // ---- Profit & Loss statement ----
+  const salesRevenue = totalRevenue;
+  const purchases = expenses.filter(e=>e.category==="Purchases").reduce((s,e)=>s+e.amount,0);
+  const grossProfit = salesRevenue - purchases;
+  const opexCats = ["Salaries","Rent","Utilities","Marketing","Other"];
+  const opexByCat = {};
+  opexCats.forEach(c=> opexByCat[c] = expenses.filter(e=>e.category===c).reduce((s,e)=>s+e.amount,0));
+  const opexTotal = Object.values(opexByCat).reduce((s,v)=>s+v,0);
+  const netProfitBeforeTax = grossProfit - opexTotal;
+  const vatRate = 0.15, corpTaxRate = 0.15;
+  const vatCollected = Math.round(salesRevenue * vatRate/(1+vatRate));
+  const corporateTax = netProfitBeforeTax>0 ? Math.round(netProfitBeforeTax*corpTaxRate) : 0;
+  const netProfitAfterTax = netProfitBeforeTax - corporateTax;
+
+  $("#fin-pl").innerHTML = `
+    <h3 class="eyebrow">Revenue</h3>
+    <div class="stmt-row"><span class="muted">Sales revenue (all invoices)</span><span>Rs ${salesRevenue}</span></div>
+    <h3 class="eyebrow">Cost of goods sold</h3>
+    <div class="stmt-row"><span class="muted">Purchases (stock received, at cost)</span><span>Rs ${purchases}</span></div>
+    <div class="stmt-row total"><span>Gross profit</span><span>Rs ${grossProfit}</span></div>
+    <h3 class="eyebrow">Operating expenses</h3>
+    ${opexCats.map(c=>`<div class="stmt-row"><span class="muted">${c}</span><span>Rs ${opexByCat[c]}</span></div>`).join("")}
+    <div class="stmt-row total"><span>Total operating expenses</span><span>Rs ${opexTotal}</span></div>
+    <div class="stmt-row total"><span>Net profit before tax</span><span>Rs ${netProfitBeforeTax}</span></div>
+    <h3 class="eyebrow">MRA — Mauritius Revenue Authority</h3>
+    <div class="stmt-row"><span class="muted">VAT collected (15%, payable to MRA)</span><span>Rs ${vatCollected}</span></div>
+    <div class="stmt-row"><span class="muted">Corporate tax provision (15% of net profit)</span><span>Rs ${corporateTax}</span></div>
+    <div class="stmt-row total"><span>Net profit after tax</span><span>Rs ${netProfitAfterTax}</span></div>
+  `;
+
+  // Balance sheet snapshot — built from real data, no invented numbers.
+  const inventoryValue = db.products.reduce((s,p)=>s+p.price*currentStock(p),0);
+  const cash = totalPaid - expenses.reduce((s,e)=>s+e.amount,0);
+  const receivables = totalPending;
+  const totalAssets = inventoryValue + cash + receivables;
+  const totalLiabilities = 0;
+  const equity = totalAssets - totalLiabilities;
+  $("#fin-assets").innerHTML = `
+    <div class="stmt-row"><span class="muted">Cash (collected − expenses paid)</span><span>Rs ${cash}</span></div>
+    <div class="stmt-row"><span class="muted">Accounts receivable</span><span>Rs ${receivables}</span></div>
+    <div class="stmt-row"><span class="muted">Inventory value (at retail)</span><span>Rs ${inventoryValue}</span></div>
+    <div class="stmt-row total"><span>Total assets</span><span>Rs ${totalAssets}</span></div>`;
+  $("#fin-liab-equity").innerHTML = `
+    <div class="stmt-row"><span class="muted">Accounts payable</span><span>Rs 0</span></div>
+    <div class="stmt-row"><span class="muted">Total liabilities</span><span>Rs ${totalLiabilities}</span></div>
+    <div class="stmt-row"><span class="muted">Owner's equity</span><span>Rs ${equity}</span></div>
+    <div class="stmt-row total"><span>Total liabilities + equity</span><span>Rs ${totalLiabilities + equity}</span></div>`;
 }
+
+function finAddExpense(category, description, amount){
+  if(!description || !amount || amount<=0) return;
+  db.expenses.push({id:nextId("exp"), category, description, amount:Math.round(amount), at:nowISO()});
+}
+$("#exp-add").addEventListener("click", ()=>{
+  finAddExpense($("#exp-category").value, $("#exp-desc").value.trim(), Number($("#exp-amount").value));
+  $("#exp-desc").value = ""; $("#exp-amount").value = "";
+  renderAll();
+});
 
 function renderReviews(){
   const delivered = db.deliveries.filter(d=>d.status==="delivered");
@@ -1078,28 +1250,61 @@ function mapXY(lat, lng, w, h){
   const y = ((MAP_BOUNDS.latMax - lat) / (MAP_BOUNDS.latMax - MAP_BOUNDS.latMin)) * h;
   return [Math.max(10,Math.min(w-10,x)), Math.max(10,Math.min(h-10,y))];
 }
+// A teardrop map-pin path centred on its ground point at (0,0), body rising upward.
+function pinPath(){ return "M0,0 C-3,-4 -13,-15 -13,-24 A13,13 0 1 1 13,-24 C13,-15 3,-4 0,0 Z"; }
+
 function buildMiniMap(lat, lng, pulsing){
   const w=300, h=190;
+
+  // City blocks (subtle parcels between streets), fixed layout for a believable street grid
+  const blocks = [
+    [14,16,58,34],[80,14,64,36],[154,18,56,32],[220,14,64,36],
+    [14,96,56,34],[86,100,60,30],[158,98,56,34],[224,98,58,32],
+    [16,150,54,30],[86,150,58,28],[158,150,54,30],[222,150,58,28],
+  ].map(([x,y,bw,bh])=>`<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="3" fill="#e4e9dc"/>`).join("");
+
+  // Park + coastline water, anchored corners for a bit of place-like texture
+  const park = `<rect x="200" y="30" width="46" height="40" rx="8" fill="#d7e8cf"/>`;
+  const water = `<path d="M300,0 L300,190 L250,190 C232,150 250,90 300,60 Z" fill="#cfe3ef"/>`;
+
+  // Street grid: a couple of thicker "avenues" and several minor streets, Google-Maps-style double stroke
+  const majorRoads = `M0,80 L300,68 M0,132 L300,140`;
+  const minorRoads = `M76,0 L64,190 M150,0 L150,190 M0,10 L300,20 M0,190 L60,0 M300,10 L210,190`;
+  const roads = `
+    <path d="${majorRoads}" stroke="#ffffff" stroke-width="7" fill="none"/>
+    <path d="${majorRoads}" stroke="#f0c85a" stroke-width="4" fill="none"/>
+    <path d="${minorRoads}" stroke="#ffffff" stroke-width="4.5" fill="none"/>
+    <path d="${minorRoads}" stroke="#e4e0d2" stroke-width="2.5" fill="none"/>
+  `;
+
   let landmarks = "";
   MAP_LANDMARKS.forEach(l=>{
     const [x,y] = mapXY(l.lat, l.lng, w, h);
     landmarks += `<g transform="translate(${x},${y})">
-      <circle r="9" fill="var(--panel)" stroke="var(--line)" stroke-width="1.5"/>
-      <text x="0" y="3.5" font-size="9" text-anchor="middle" fill="var(--muted)">${l.icon==="store"?"S":"W"}</text>
-      <text x="0" y="20" font-size="8.5" text-anchor="middle" fill="var(--muted)">${l.label}</text>
+      <path d="${pinPath()}" fill="#5b6c85" stroke="#fff" stroke-width="1.5"/>
+      <circle cy="-24" r="5.5" fill="#fff"/>
+      <text x="0" y="16" font-size="8.5" font-weight="600" text-anchor="middle" fill="#3a4658" stroke="#fff" stroke-width="3" paint-order="stroke">${l.label}</text>
     </g>`;
   });
+
   let driverMark = "";
   if(lat!=null && lng!=null){
     const [x,y] = mapXY(lat, lng, w, h);
     driverMark = `<g transform="translate(${x},${y})">
-      ${pulsing?`<circle r="12" fill="var(--accent)" opacity=".25"><animate attributeName="r" values="8;16;8" dur="1.8s" repeatCount="indefinite"/><animate attributeName="opacity" values=".35;0;.35" dur="1.8s" repeatCount="indefinite"/></circle>`:""}
-      <circle r="7" fill="var(--accent)" stroke="var(--panel)" stroke-width="2"/>
+      ${pulsing?`<circle cy="0" r="6" fill="var(--bad)" opacity=".3"><animate attributeName="r" values="6;20;6" dur="1.8s" repeatCount="indefinite"/><animate attributeName="opacity" values=".4;0;.4" dur="1.8s" repeatCount="indefinite"/></circle>`:""}
+      <ellipse cy="1" rx="7" ry="2.5" fill="rgba(0,0,0,.18)"/>
+      <path d="${pinPath()}" fill="var(--bad)" stroke="#fff" stroke-width="1.8"/>
+      <circle cy="-24" r="5.5" fill="#fff"/>
+      <circle cy="-24" r="2.6" fill="var(--bad)"/>
     </g>`;
   }
+
   return `<div class="minimap"><svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
-    <rect width="${w}" height="${h}" fill="var(--panel-2)"/>
-    <path d="M0 40 L300 65 M0 120 L300 100 M40 0 L60 190 M230 0 L210 190" stroke="var(--line)" stroke-width="2" fill="none"/>
+    <rect width="${w}" height="${h}" fill="#eef1ea"/>
+    ${water}
+    ${blocks}
+    ${park}
+    ${roads}
     ${landmarks}
     ${driverMark}
   </svg>${pulsing?`<div class="live-badge"><span class="dot"></span>LIVE</div>`:""}</div>`;
@@ -1233,8 +1438,10 @@ $("#driver-select").addEventListener("change", renderDriverApp);
 
 // ---------------- Reset demo ----------------
 const INITIAL_PRODUCTS = JSON.parse(JSON.stringify(db.products));
+const INITIAL_EXPENSES = JSON.parse(JSON.stringify(db.expenses));
 function resetDemo(){
   db.products.length = 0; INITIAL_PRODUCTS.forEach(p=>db.products.push({...p}));
+  db.expenses.length = 0; INITIAL_EXPENSES.forEach(e=>db.expenses.push({...e}));
   db.customers.length = 0; db.orders.length = 0; db.deliveries.length = 0;
   db.invoices.length = 0; db.reviews.length = 0; db.stockAudit.length = 0;
   seq = 1; driverRotation = 0;
@@ -1284,7 +1491,8 @@ function waShowPaymentOptions(order){
 }
 
 function waCompletePayment(order, method){
-  const {invoice} = finConfirmAndInvoice(order.id);
+  const {invoice} = finConfirmAndInvoice(order.id, method);
+  if(method!=="cash") finMarkPaid(invoice.ledgerId);
   const delivery = core.createDelivery({orderId: order.id});
   const drivers = core.listUsers("driver");
   const driver = drivers[driverRotation % drivers.length]; driverRotation++;
@@ -1292,7 +1500,7 @@ function waCompletePayment(order, method){
   const lat = -20.1609+(Math.random()-0.5)*0.05, lng = 57.5012+(Math.random()-0.5)*0.05;
   core.pingLocation(delivery.id, lat, lng);
   const eta = estimateDeliveryText();
-  const methodLabel = {card:"Card / Payment Link", juice:"Juice by MCB", push:"Push to Phone", cash:"Cash on Delivery", bank:"Bank Transfer"}[method];
+  const methodLabel = PAYMENT_METHOD_LABEL[method];
   const status = method==="cash" ? "Pending (COD)" : "Paid";
   const customer = db.customers.find(c=>c.id===order.customerId);
   const pushNote = method==="push" ? `A payment request was pushed to <span class="mono">${customer?customer.phone:"the customer's phone"}</span> — approved on their end.<br>` : "";
