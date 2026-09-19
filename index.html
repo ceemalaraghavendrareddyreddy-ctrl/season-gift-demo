@@ -151,6 +151,124 @@ h3.eyebrow{font-size:11.5px;margin:18px 0 8px;color:var(--muted);text-transform:
 .linklike{color:var(--accent);cursor:pointer;text-decoration:underline;background:none;border:none;font:inherit;padding:0}
 ::-webkit-scrollbar{height:8px;width:8px}
 ::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px}
+
+/* ---- v2 polish additions ---- */
+.icon{width:16px;height:16px;flex:none;display:inline-block;vertical-align:-3px}
+.icon svg{width:100%;height:100%;display:block}
+nav.tabs{position:sticky;top:0;z-index:20;background:var(--bg)}
+nav.tabs button{display:inline-flex;align-items:center;gap:7px}
+nav.tabs button .icon{opacity:.75}
+nav.tabs button.active .icon{opacity:1;color:var(--accent)}
+
+h2{display:flex;align-items:center;gap:8px}
+h2 .icon{width:18px;height:18px;color:var(--accent)}
+
+tbody tr{transition:background-color .12s ease}
+tbody tr:hover{background:var(--panel-2)}
+
+.stat{position:relative;overflow:hidden;padding:16px 18px 16px 16px;display:flex;flex-direction:column;gap:2px}
+.stat .stat-top{display:flex;align-items:center;justify-content:space-between}
+.stat .icon-chip{
+  width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex:none;
+}
+.stat .icon-chip .icon{width:16px;height:16px}
+.stat.c-accent .icon-chip{background:var(--accent-soft);color:var(--accent)}
+.stat.c-warn .icon-chip{background:var(--warn-soft);color:var(--warn)}
+.stat.c-ok .icon-chip{background:var(--ok-soft);color:var(--ok)}
+.stat.c-info .icon-chip{background:var(--info-soft);color:var(--info)}
+.stat.c-bad .icon-chip{background:var(--bad-soft);color:var(--bad)}
+
+.flow2{display:flex;align-items:stretch;gap:6px;margin-top:4px;flex-wrap:wrap}
+.flow2 .fnode{
+  flex:1 1 120px;border:1px solid var(--line);border-radius:10px;padding:12px 12px;text-align:left;
+  display:flex;flex-direction:column;gap:6px;background:var(--panel-2);min-width:118px;
+}
+.flow2 .fnode .icon{width:18px;height:18px;color:var(--accent)}
+.flow2 .fnode b{font-size:12.5px;color:var(--ink)}
+.flow2 .fnode span{font-size:11px;color:var(--muted);line-height:1.35}
+.flow2 .farrow{display:flex;align-items:center;justify-content:center;color:var(--muted);flex:0 0 20px}
+.flow2 .farrow .icon{width:16px;height:16px}
+@media (max-width:820px){.flow2{flex-direction:column}.flow2 .farrow{transform:rotate(90deg);margin:-2px 0}}
+
+.stepper{display:flex;align-items:flex-start;gap:0;overflow-x:auto;padding-bottom:4px}
+.step{display:flex;flex-direction:column;align-items:center;gap:8px;flex:1 1 0;min-width:118px;position:relative}
+.step .num{
+  width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:12.5px;border:1.5px solid var(--line);color:var(--muted);background:var(--panel);
+  transition:all .15s ease;flex:none;
+}
+.step.done .num{background:var(--ok);border-color:var(--ok);color:var(--accent-ink)}
+.step.next .num{border-color:var(--accent);color:var(--accent)}
+.step .connector{position:absolute;top:15px;left:calc(-50% + 15px);width:calc(100% - 30px);height:2px;background:var(--line);z-index:-1}
+.step.done .connector{background:var(--ok)}
+.step:first-child .connector{display:none}
+.step button.btn{width:100%;font-size:12px;padding:7px 8px;white-space:normal;line-height:1.25}
+
+#gp-feed{display:flex;flex-direction:column;gap:8px;margin-top:16px}
+.feedcard{
+  display:flex;gap:12px;align-items:flex-start;background:var(--panel-2);border:1px solid var(--line);
+  border-left:3px solid var(--accent);border-radius:9px;padding:11px 13px;animation:feedin .3s ease;
+}
+@keyframes feedin{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.feedcard .ficon{
+  width:28px;height:28px;border-radius:8px;background:var(--accent-soft);color:var(--accent);
+  display:flex;align-items:center;justify-content:center;flex:none;
+}
+.feedcard .ficon .icon{width:15px;height:15px}
+.feedcard .fbody{flex:1;min-width:0}
+.feedcard .ftitle{font-weight:600;font-size:13px}
+.feedcard .fdetail{color:var(--muted);font-size:12px;margin-top:2px;line-height:1.5}
+.feedcard .fdetail .mono{color:var(--ink)}
+.feedcard .fqr{margin-top:8px;background:#fff;padding:8px;border-radius:8px;border:1px solid var(--line);display:inline-block}
+.feedcard .flink{margin-top:6px}
+
+.chatrow{display:flex;gap:8px;align-items:flex-end;margin:2px 0}
+.chatrow.me{flex-direction:row-reverse}
+.avatar{
+  width:26px;height:26px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:var(--accent-ink);background:var(--accent);
+}
+.chatrow.me .avatar{background:var(--info)}
+.bubble{position:relative}
+.bubble .ticks{color:#5ec3e6;font-size:11px;margin-left:4px}
+
+/* ---- v3: reset button, driver phone mockup, mini map ---- */
+.btn.reset{display:flex;align-items:center;gap:6px;color:var(--muted)}
+.btn.reset:hover{color:var(--bad);border-color:var(--bad)}
+
+.phone{
+  width:280px;max-width:100%;margin:0 auto;border:8px solid var(--ink);border-radius:28px;background:var(--panel);
+  box-shadow:var(--shadow);overflow:hidden;
+}
+.phone .pnotch{height:18px;background:var(--ink);display:flex;align-items:center;justify-content:center}
+.phone .pnotch::after{content:"";width:50px;height:5px;border-radius:3px;background:var(--muted)}
+.phone .pscreen{padding:14px;min-height:340px;background:var(--panel-2)}
+.phone .phead{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.phone .phead b{font-size:13px}
+.phone .phead .pdot{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+.dcard{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:8px}
+.dcard .dtop{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:6px}
+.dcard .dtop .mono{font-size:12px}
+.dcard .daddr{font-size:11.5px;color:var(--muted);margin-bottom:8px}
+.dcard .dactions{display:flex;gap:6px;flex-wrap:wrap}
+.dcard .dactions button{flex:1;font-size:11.5px;padding:6px 6px}
+.driverpane{display:grid;grid-template-columns:280px 1fr;gap:20px;align-items:start}
+@media (max-width:760px){.driverpane{grid-template-columns:1fr}}
+
+.minimap{position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:#eef2ea}
+.minimap svg{display:block;width:100%;height:auto}
+
+.dslip{
+  margin-top:8px;max-width:320px;background:var(--panel);border:1.5px dashed var(--line);border-radius:8px;
+  padding:12px 14px;font-size:12px;
+}
+.dslip-head{
+  display:flex;justify-content:space-between;font-family:"Fraunces",serif;font-weight:600;font-size:11.5px;
+  letter-spacing:.03em;padding-bottom:8px;margin-bottom:8px;border-bottom:1px dashed var(--line);color:var(--accent);
+}
+.dslip-row{display:flex;justify-content:space-between;gap:10px;padding:3px 0}
+.dslip-row .muted{flex:none;font-size:11px;text-transform:uppercase;letter-spacing:.03em}
+.dslip-barcode{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}
 </style>
 </head>
 <body>
@@ -163,16 +281,18 @@ h3.eyebrow{font-size:11.5px;margin:18px 0 8px;color:var(--muted);text-transform:
   </div>
   <div class="spacer"></div>
   <div class="livebadge"><span class="dot"></span> Demo data, resets on reload</div>
+  <button class="btn reset" id="reset-demo" data-icon="reset">Reset demo</button>
 </div>
 
 <nav class="tabs" id="tabs">
-  <button data-tab="overview" class="active">Overview</button>
-  <button data-tab="whatsapp">WhatsApp AI</button>
-  <button data-tab="inventory">Inventory</button>
-  <button data-tab="orders">Orders</button>
-  <button data-tab="delivery">Delivery &amp; Drivers</button>
-  <button data-tab="finance">Finance</button>
-  <button data-tab="reviews">QR Reviews</button>
+  <button data-tab="overview" class="active" data-icon="grid">Overview</button>
+  <button data-tab="whatsapp" data-icon="chat">WhatsApp AI</button>
+  <button data-tab="inventory" data-icon="box">Inventory</button>
+  <button data-tab="orders" data-icon="receipt">Orders</button>
+  <button data-tab="delivery" data-icon="truck">Delivery &amp; Drivers</button>
+  <button data-tab="driverapp" data-icon="phone">Driver App</button>
+  <button data-tab="finance" data-icon="wallet">Finance</button>
+  <button data-tab="reviews" data-icon="star">QR Reviews</button>
 </nav>
 
 <main class="wrap">
@@ -180,21 +300,22 @@ h3.eyebrow{font-size:11.5px;margin:18px 0 8px;color:var(--muted);text-transform:
   <section id="tab-overview" class="tab active">
     <div class="grid cols-4 section" id="overview-stats"></div>
     <div class="card section">
-      <h2>One core, five modules</h2>
+      <h2 data-icon="link">One core, five modules</h2>
       <p class="desc">Every tab reads a different feature area, but all of them write into the same core entities — Customer, Product, Order, Delivery, Invoice. Try the golden path below and watch one order ripple across every module.</p>
-      <div class="flow" id="flow"></div>
+      <div class="flow2" id="flow"></div>
     </div>
     <div class="card">
-      <h2>Try the golden path</h2>
-      <p class="desc" style="margin-bottom:10px">One click per step — each one calls the same functions the tabs use.</p>
-      <div class="row" id="golden-path"></div>
+      <h2 data-icon="play">Try the golden path</h2>
+      <p class="desc" style="margin-bottom:10px">Click through in order — each step runs for real against the demo data and shows its result below, right here.</p>
+      <div class="stepper" id="golden-path"></div>
+      <div id="gp-feed"></div>
     </div>
   </section>
 
   <section id="tab-whatsapp" class="tab">
     <div class="grid cols-2">
       <div class="card">
-        <h2>WhatsApp AI Agent</h2>
+        <h2 data-icon="chat">WhatsApp AI Agent</h2>
         <p class="desc">Simulated webhook + AI parser. Reads live prices &amp; stock from the core Product entity — not a separate catalogue.</p>
         <div class="row">
           <input id="wa-phone" placeholder="+230 5xxx xxxx" value="+230 5123 4567" style="width:170px">
@@ -207,7 +328,7 @@ h3.eyebrow{font-size:11.5px;margin:18px 0 8px;color:var(--muted);text-transform:
         <div class="chat" id="wa-chat"></div>
       </div>
       <div class="card">
-        <h2>Leads → core Orders</h2>
+        <h2 data-icon="receipt">Leads → core Orders</h2>
         <p class="desc">Every match becomes a "pending" Order on the core Customer/Order tables.</p>
         <div class="tablewrap"><table id="wa-leads"><thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th></tr></thead><tbody></tbody></table></div>
       </div>
@@ -216,17 +337,17 @@ h3.eyebrow{font-size:11.5px;margin:18px 0 8px;color:var(--muted);text-transform:
 
   <section id="tab-inventory" class="tab">
     <div class="card section">
-      <h2>Products &amp; stock</h2>
+      <h2 data-icon="box">Products &amp; stock</h2>
       <p class="desc">Shared with WhatsApp AI and (in production) the website — update a price once, it applies everywhere.</p>
       <div class="tablewrap"><table id="inv-products"><thead><tr><th>Product</th><th>Location</th><th>Price (Rs)</th><th>Stock</th><th>Reorder at</th><th></th></tr></thead><tbody></tbody></table></div>
     </div>
     <div class="grid cols-2">
       <div class="card">
-        <h2>Low-stock alerts</h2>
+        <h2 data-icon="alert">Low-stock alerts</h2>
         <div id="inv-low" class="pill-list muted">—</div>
       </div>
       <div class="card">
-        <h2>Stock audit log</h2>
+        <h2 data-icon="log">Stock audit log</h2>
         <div class="tablewrap"><table id="inv-audit"><thead><tr><th>When</th><th>Product</th><th>Δ</th><th>Reason</th></tr></thead><tbody></tbody></table></div>
       </div>
     </div>
@@ -234,7 +355,7 @@ h3.eyebrow{font-size:11.5px;margin:18px 0 8px;color:var(--muted);text-transform:
 
   <section id="tab-orders" class="tab">
     <div class="card">
-      <h2>All orders</h2>
+      <h2 data-icon="receipt">All orders</h2>
       <p class="desc">WhatsApp, website and in-store orders share one pipeline, so Delivery and Finance never need to know where an order came from.</p>
       <div class="tablewrap"><table id="ord-table"><thead><tr><th>Order</th><th>Source</th><th>Customer</th><th>Total (Rs)</th><th>Status</th><th></th></tr></thead><tbody></tbody></table></div>
     </div>
@@ -242,41 +363,65 @@ h3.eyebrow{font-size:11.5px;margin:18px 0 8px;color:var(--muted);text-transform:
 
   <section id="tab-delivery" class="tab">
     <div class="card section">
-      <h2>Dispatch — today's deliveries</h2>
+      <h2 data-icon="truck">Dispatch — today's deliveries</h2>
       <div class="tablewrap"><table id="del-table"><thead><tr><th>Delivery</th><th>Order</th><th>Driver</th><th>Status</th><th>Last GPS ping</th><th>Track</th></tr></thead><tbody></tbody></table></div>
     </div>
     <div class="grid cols-2">
       <div class="card">
-        <h2>Route sequencing</h2>
+        <h2 data-icon="route">Route sequencing</h2>
         <p class="desc">Nearest-neighbor, v1 scope — no full optimizer. Demo stops around Port Louis.</p>
         <button class="btn" id="seq-run">Sequence demo stops</button>
         <ol id="seq-result" style="margin-top:10px;padding-left:18px"></ol>
       </div>
       <div class="card">
-        <h2>Customer tracking</h2>
+        <h2 data-icon="pin">Customer tracking</h2>
         <p class="desc">Same GPS feed the driver app writes — this is what replaces hardware fleet tracking.</p>
         <div class="row"><select id="track-select"></select><button class="btn" id="track-open">Open tracking view</button></div>
       </div>
     </div>
   </section>
 
+  <section id="tab-driverapp" class="tab">
+    <div class="card">
+      <h2 data-icon="phone">Driver App</h2>
+      <p class="desc">What the driver sees on their company phone — company-provided devices, so location permission is always-on with no personal-device friction. Turn-by-turn handoff goes to Google Maps / Waze, not a built-in router.</p>
+      <div class="driverpane">
+        <div>
+          <div class="row" style="margin-bottom:12px">
+            <select id="driver-select"></select>
+          </div>
+          <div class="phone">
+            <div class="pnotch"></div>
+            <div class="pscreen" id="phone-screen"></div>
+          </div>
+        </div>
+        <div>
+          <h3 class="eyebrow">Why this matters</h3>
+          <p class="desc" style="margin-bottom:10px">This same screen is the entire fleet-tracking system — the driver's phone <i>is</i> the tracker. No separate hardware, no telematics vendor contract. Background GPS pings every 30–60s feed straight into the Delivery tab and the customer's tracking link.</p>
+          <h3 class="eyebrow">Try it</h3>
+          <p class="desc">Pick a driver above, then step through their deliveries: Picked up → En route → Delivered, with an optional proof-of-delivery capture at the end.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section id="tab-finance" class="tab">
     <div class="card section">
-      <h2>Invoices</h2>
+      <h2 data-icon="wallet">Invoices</h2>
       <p class="desc">A synced read replica of Ledger Book — not a second source of truth for money.</p>
       <div class="tablewrap"><table id="fin-invoices"><thead><tr><th>Ledger ID</th><th>Order</th><th>Amount (Rs)</th><th>Status</th><th>Issued</th><th></th></tr></thead><tbody></tbody></table></div>
     </div>
-    <div class="card"><h2>Overdue alerts</h2><div id="fin-overdue" class="muted">—</div></div>
+    <div class="card"><h2 data-icon="alert">Overdue alerts</h2><div id="fin-overdue" class="muted">—</div></div>
   </section>
 
   <section id="tab-reviews" class="tab">
     <div class="card section">
-      <h2>Generate a review QR</h2>
+      <h2 data-icon="qr">Generate a review QR</h2>
       <p class="desc">One QR per completed delivery, linking to a short review form tied to the order.</p>
       <div class="row"><select id="rev-select"></select><button class="btn primary" id="rev-generate">Generate QR</button></div>
       <div id="rev-qr" class="qrbox section" style="margin-top:14px"></div>
     </div>
-    <div class="card"><h2>Submitted reviews</h2>
+    <div class="card"><h2 data-icon="star">Submitted reviews</h2>
       <div class="tablewrap"><table id="rev-table"><thead><tr><th>Order</th><th>Rating</th><th>Comment</th><th>When</th></tr></thead><tbody></tbody></table></div>
     </div>
   </section>
@@ -359,6 +504,7 @@ const core = {
   updateDeliveryStatus(id, status){ const d=core.getDelivery(id); if(!d) throw new Error("not found"); d.status=status; return d; },
   assignDriver(id, driverId){ const d=core.getDelivery(id); if(!d) throw new Error("not found"); d.driverId=driverId; d.status="assigned"; return d; },
   pingLocation(id, lat, lng){ const d=core.getDelivery(id); if(!d) throw new Error("not found"); d.location={lat,lng,at:nowISO()}; return d; },
+  attachProof(id, proof){ const d=core.getDelivery(id); if(!d) throw new Error("not found"); d.proof=proof; return d; },
   listUsers: (role) => role ? db.users.filter(u=>u.role===role) : db.users,
 };
 
@@ -424,6 +570,40 @@ function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<
 function productNames(items){ return items.map(it=>{ const p=db.products.find(p=>p.id===it.productId); return `${it.qty} x ${p?p.name:it.productId}`; }).join(", "); }
 function customerName(id){ const c=db.customers.find(c=>c.id===id); return c?c.name:id; }
 function driverName(id){ const u=db.users.find(u=>u.id===id); return u?u.name:"—"; }
+function initials(name){ return (name||"?").trim().split(/\s+/).slice(0,2).map(w=>w[0]).join("").toUpperCase(); }
+
+// ---------------- Icon set (inline SVG, stroke-based, currentColor) ----------------
+const ICONS = {
+  grid:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg>',
+  chat:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.5 7.2L3 21l1.9-6.2A8 8 0 1 1 21 12Z"/></svg>',
+  box:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg>',
+  receipt:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12v20l-3-2-3 2-3-2-3 2V2Z"/><path d="M9 7h6M9 11h6"/></svg>',
+  truck:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7h12v9H2z"/><path d="M14 10h4l4 3.5V16h-8z"/><circle cx="6.5" cy="18" r="1.7"/><circle cx="17.5" cy="18" r="1.7"/></svg>',
+  wallet:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h13a1 1 0 0 1 1 1v3"/><path d="M3 7v10a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-6a1 1 0 0 0-1-1H5a2 2 0 0 1-2-2Z"/><circle cx="17" cy="14" r="1.3"/></svg>',
+  star:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5 15 9l7 1-5 4.9L18.4 22 12 18.3 5.6 22 7 14.9 2 10l7-1Z"/></svg>',
+  link:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 15 15 9"/><path d="M13.5 5.5 15 4a3.5 3.5 0 0 1 5 5l-1.5 1.5"/><path d="M10.5 18.5 9 20a3.5 3.5 0 0 1-5-5l1.5-1.5"/></svg>',
+  play:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m10 8.5 6 3.5-6 3.5Z"/></svg>',
+  alert:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4M12 17h.01"/></svg>',
+  log:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v5H4zM4 12h10M4 16h10M4 20h6"/></svg>',
+  route:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.3"/><circle cx="18" cy="18" r="2.3"/><path d="M8 7c3 0 2 8 5 8h5"/></svg>',
+  pin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.3"/></svg>',
+  qr:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM19 14h2M14 19h2M19 19h2"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.5 18 20 6"/></svg>',
+  arrow:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg>',
+  phone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/></svg>',
+  reset:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 1 3 6.7"/><path d="M3 21v-6h6"/></svg>',
+  store:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1.5-5h15L21 9"/><path d="M4 9h16v11H4z"/><path d="M9 20v-6h6v6"/></svg>',
+  camera:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l1.5-2h7L17 8h3v11H4Z"/><circle cx="12" cy="13.5" r="3.2"/></svg>',
+};
+function icon(name){ return `<span class="icon">${ICONS[name]||""}</span>`; }
+function applyIcons(){
+  $$("[data-icon]").forEach(el=>{
+    if(el.dataset.iconApplied) return;
+    el.insertAdjacentHTML("afterbegin", icon(el.dataset.icon));
+    el.dataset.iconApplied = "1";
+  });
+}
+applyIcons();
 
 $$("#tabs button").forEach(btn=>{
   btn.addEventListener("click", ()=>{
@@ -442,40 +622,130 @@ function goTab(name){
 function renderOverview(){
   const orders = db.orders, deliveries = db.deliveries, products = db.products;
   const stats = [
-    ["Orders total", orders.length],
-    ["Pending orders", orders.filter(o=>o.status==="pending").length],
-    ["Confirmed revenue (Rs)", orders.filter(o=>o.status==="confirmed").reduce((s,o)=>s+o.total,0)],
-    ["Low-stock products", products.filter(p=>p.stock<=p.reorderThreshold).length],
-    ["Active deliveries", deliveries.filter(d=>!["delivered","failed"].includes(d.status)).length],
-    ["Reviews collected", db.reviews.length],
-    ["Invoices unpaid", db.invoices.filter(i=>i.status==="pending").length],
+    ["Orders total", orders.length, "receipt", "accent"],
+    ["Pending orders", orders.filter(o=>o.status==="pending").length, "alert", "warn"],
+    ["Confirmed revenue (Rs)", orders.filter(o=>o.status==="confirmed").reduce((s,o)=>s+o.total,0), "wallet", "ok"],
+    ["Low-stock products", products.filter(p=>p.stock<=p.reorderThreshold).length, "box", "warn"],
+    ["Active deliveries", deliveries.filter(d=>!["delivered","failed"].includes(d.status)).length, "truck", "info"],
+    ["Reviews collected", db.reviews.length, "star", "ok"],
+    ["Invoices unpaid", db.invoices.filter(i=>i.status==="pending").length, "wallet", "bad"],
   ];
-  $("#overview-stats").innerHTML = stats.map(([l,v])=>`<div class="card stat"><div class="label">${l}</div><div class="value ${String(v).length>4?'small':''}">${v}</div></div>`).join("");
+  $("#overview-stats").innerHTML = stats.map(([l,v,ic,c])=>`
+    <div class="card stat c-${c}">
+      <div class="stat-top">
+        <div class="label">${l}</div>
+        <div class="icon-chip">${icon(ic)}</div>
+      </div>
+      <div class="value ${String(v).length>4?'small':''}">${v}</div>
+    </div>`).join("");
 
-  $("#flow").innerHTML = ["WhatsApp AI","Website","In-store"].map(s=>`<div class="node"><b>${s}</b>writes a core Order</div>`).join("")
-    + `<div class="node"><b>Core Order</b>one shared pipeline</div>`
-    + `<div class="node"><b>Finance</b>invoices via Ledger Book</div>`
-    + `<div class="node"><b>Delivery</b>tracked to the door</div>`;
+  $("#flow").innerHTML =
+    `<div class="fnode">${icon("chat")}<b>WhatsApp / Website / In-store</b><span>Each channel writes a core Order — never a separate table</span></div>`
+    + `<div class="farrow">${icon("arrow")}</div>`
+    + `<div class="fnode">${icon("receipt")}<b>Core Order</b><span>One shared pipeline for every source</span></div>`
+    + `<div class="farrow">${icon("arrow")}</div>`
+    + `<div class="fnode">${icon("wallet")}<b>Finance</b><span>Invoices via Ledger Book, one source of truth</span></div>`
+    + `<div class="farrow">${icon("arrow")}</div>`
+    + `<div class="fnode">${icon("truck")}<b>Delivery</b><span>Tracked to the door, reviewed after</span></div>`;
 
   const hasPending = orders.some(o=>o.status==="pending");
   const hasConfirmedNoDelivery = orders.some(o=>o.status==="confirmed" && !deliveries.some(d=>d.orderId===o.id));
   const hasUnassigned = deliveries.some(d=>d.status==="unassigned");
   const hasAssigned = deliveries.some(d=>["assigned","picked_up","en_route"].includes(d.status));
   const hasDelivered = deliveries.some(d=>d.status==="delivered");
-  $("#golden-path").innerHTML = `
-    <button class="btn primary" id="gp-1">1. Send a WhatsApp order</button>
-    <button class="btn" id="gp-2" ${hasPending?'':'disabled'}>2. Confirm + invoice</button>
-    <button class="btn" id="gp-3" ${hasConfirmedNoDelivery?'':'disabled'}>3. Create delivery</button>
-    <button class="btn" id="gp-4" ${hasUnassigned?'':'disabled'}>4. Assign driver + ping GPS</button>
-    <button class="btn" id="gp-5" ${hasAssigned?'':'disabled'}>5. Mark delivered</button>
-    <button class="btn" id="gp-6" ${hasDelivered?'':'disabled'}>6. Generate review QR</button>
-  `;
-  $("#gp-1")?.addEventListener("click", ()=>{ goTab("whatsapp"); $("#wa-message").focus(); });
-  $("#gp-2")?.addEventListener("click", ()=>{ goTab("orders"); });
-  $("#gp-3")?.addEventListener("click", ()=>{ goTab("orders"); });
-  $("#gp-4")?.addEventListener("click", ()=>{ goTab("delivery"); });
-  $("#gp-5")?.addEventListener("click", ()=>{ goTab("delivery"); });
-  $("#gp-6")?.addEventListener("click", ()=>{ goTab("reviews"); });
+  const hasReview = db.reviews.length>0;
+
+  const steps = [
+    {n:1, label:"Send a WhatsApp order", done: orders.length>0, enabled: true, tab:"whatsapp"},
+    {n:2, label:"Confirm + invoice", done: orders.some(o=>o.status==="confirmed"), enabled: hasPending, tab:"orders"},
+    {n:3, label:"Create delivery", done: deliveries.length>0, enabled: hasConfirmedNoDelivery, tab:"orders"},
+    {n:4, label:"Assign driver + ping GPS", done: deliveries.some(d=>d.location), enabled: hasUnassigned, tab:"delivery"},
+    {n:5, label:"Mark delivered", done: hasDelivered, enabled: hasAssigned, tab:"delivery"},
+    {n:6, label:"Generate review QR", done: hasReview, enabled: hasDelivered, tab:"reviews"},
+  ];
+  const firstNotDone = steps.find(s=>!s.done);
+  $("#golden-path").innerHTML = steps.map(s=>{
+    const isNext = firstNotDone && s.n===firstNotDone.n;
+    const cls = s.done ? "done" : (isNext ? "next" : "");
+    const num = s.done ? icon("check") : s.n;
+    return `<div class="step ${cls}">
+      <div class="connector"></div>
+      <div class="num">${num}</div>
+      <button class="btn ${isNext?'primary':''}" data-gp="${s.n}" ${s.enabled?'':'disabled'}>${s.label}</button>
+    </div>`;
+  }).join("");
+  $$("#golden-path [data-gp]").forEach(btn=>btn.addEventListener("click", ()=>runGoldenStep(Number(btn.dataset.gp))));
+}
+
+// ---------------- Golden path: each step performs the real action and logs a result card ----------------
+let driverRotation = 0;
+function gpLog(iconName, title, detailHtml, tabLink){
+  const feed = $("#gp-feed");
+  const linkHtml = tabLink ? `<div class="flink"><button class="linklike" data-goto="${tabLink}">Open ${tabLink==="whatsapp"?"WhatsApp AI":tabLink[0].toUpperCase()+tabLink.slice(1)} tab ↗</button></div>` : "";
+  const card = document.createElement("div");
+  card.className = "feedcard";
+  card.innerHTML = `<div class="ficon">${icon(iconName)}</div><div class="fbody"><div class="ftitle">${title}</div><div class="fdetail">${detailHtml}</div>${linkHtml}</div>`;
+  feed.insertBefore(card, feed.firstChild);
+  card.querySelector("[data-goto]")?.addEventListener("click", (e)=>goTab(e.target.dataset.goto));
+  while(feed.children.length > 6) feed.removeChild(feed.lastChild);
+}
+
+function runGoldenStep(n){
+  const orders = db.orders, deliveries = db.deliveries;
+  if(n===1){
+    goTab("whatsapp");
+    $("#wa-message")?.focus();
+    return;
+  }
+  if(n===2){
+    const order = orders.find(o=>o.status==="pending");
+    if(!order) return;
+    const {invoice} = finConfirmAndInvoice(order.id);
+    gpLog("wallet", "Order confirmed + invoiced", `Order <span class="mono">${order.id}</span> confirmed — stock deducted, invoice <span class="mono">${invoice.ledgerId}</span> issued for Rs ${invoice.amount} via Ledger Book.`, "finance");
+  } else if(n===3){
+    const order = orders.find(o=>o.status==="confirmed" && !deliveries.some(d=>d.orderId===o.id));
+    if(!order) return;
+    const delivery = core.createDelivery({orderId: order.id});
+    const customer = db.customers.find(c=>c.id===order.customerId);
+    const feed = $("#gp-feed");
+    const card = document.createElement("div");
+    card.className = "feedcard";
+    card.innerHTML = `<div class="ficon">${icon("truck")}</div><div class="fbody">
+      <div class="ftitle">Delivery created</div>
+      <div class="fdetail">A delivery note like this is what would print at pack time, or attach to the order for the driver app to pick up.</div>
+      ${buildDeliverySlip(delivery, order, customer)}
+      <div class="flink"><button class="linklike" data-goto="delivery">Open Delivery tab ↗</button></div>
+    </div>`;
+    feed.insertBefore(card, feed.firstChild);
+    card.querySelector("[data-goto]")?.addEventListener("click", (e)=>goTab(e.target.dataset.goto));
+    while(feed.children.length > 6) feed.removeChild(feed.lastChild);
+  } else if(n===4){
+    const delivery = deliveries.find(d=>d.status==="unassigned");
+    if(!delivery) return;
+    const drivers = core.listUsers("driver");
+    const driver = drivers[driverRotation % drivers.length]; driverRotation++;
+    core.assignDriver(delivery.id, driver.id);
+    const lat = -20.1609+(Math.random()-0.5)*0.05, lng = 57.5012+(Math.random()-0.5)*0.05;
+    core.pingLocation(delivery.id, lat, lng);
+    gpLog("pin", "Driver assigned + GPS ping received", `${driver.name} assigned to <span class="mono">${delivery.id}</span> — live location ${lat.toFixed(4)}, ${lng.toFixed(4)}.`, "delivery");
+  } else if(n===5){
+    const delivery = deliveries.find(d=>["assigned","picked_up","en_route"].includes(d.status));
+    if(!delivery) return;
+    core.updateDeliveryStatus(delivery.id, "delivered");
+    gpLog("check", "Marked as delivered", `Delivery <span class="mono">${delivery.id}</span> is now delivered — the customer's tracking page updates instantly.`, "delivery");
+  } else if(n===6){
+    const delivery = deliveries.find(d=>d.status==="delivered");
+    if(!delivery) return;
+    const feed = $("#gp-feed");
+    const card = document.createElement("div");
+    card.className = "feedcard";
+    const qrId = `gpqr-${Date.now()}`;
+    card.innerHTML = `<div class="ficon">${icon("qr")}</div><div class="fbody"><div class="ftitle">Review QR generated</div><div class="fdetail">One QR per completed delivery — printed on the note or sent via WhatsApp after delivery.</div><div class="fqr" id="${qrId}"></div></div>`;
+    feed.insertBefore(card, feed.firstChild);
+    new QRCode(document.getElementById(qrId), {text: location.href.split('#')[0] + `#review:${delivery.id}`, width:120, height:120});
+    while(feed.children.length > 6) feed.removeChild(feed.lastChild);
+  }
+  renderAll();
 }
 
 function renderWhatsapp(){
@@ -584,16 +854,82 @@ $("#rev-generate").addEventListener("click", ()=>{
   $("#qr-openlink").addEventListener("click", ()=>openReview(id));
 });
 
+// ---------------- Delivery slip mockup (what would print at pack time) ----------------
+function buildBarcode(text){
+  let bars = "";
+  let x = 0;
+  for(let i=0;i<text.length;i++){
+    const code = text.charCodeAt(i);
+    const w = 1 + (code % 3);
+    if(code % 2 === 0) bars += `<rect x="${x}" y="0" width="${w}" height="34" fill="var(--ink)"/>`;
+    x += w + 1.5;
+  }
+  return `<svg viewBox="0 0 ${x} 34" style="width:100%;height:36px;display:block">${bars}</svg>`;
+}
+function buildDeliverySlip(delivery, order, customer){
+  return `<div class="dslip">
+    <div class="dslip-head">
+      <span>SEASON GIFT</span><span>DELIVERY NOTE</span>
+    </div>
+    <div class="dslip-row"><span class="muted">Delivery</span><span class="mono">${delivery.id}</span></div>
+    <div class="dslip-row"><span class="muted">Order</span><span class="mono">${order.id}</span></div>
+    <div class="dslip-row"><span class="muted">Customer</span><span>${customer?customer.name:"—"}</span></div>
+    <div class="dslip-row"><span class="muted">Items</span><span style="text-align:right;max-width:65%">${productNames(order.items)}</span></div>
+    <div class="dslip-row"><span class="muted">Route</span><span>Main Store → Customer address</span></div>
+    <div class="dslip-row"><span class="muted">Status</span><span class="badge unassigned">unassigned</span></div>
+    <div class="dslip-barcode">${buildBarcode(delivery.id)}</div>
+  </div>`;
+}
+
+// ---------------- Mini map (abstract, offline — no tile/API dependency) ----------------
+const MAP_BOUNDS = {latMin:-20.32, latMax:-20.08, lngMin:57.465, lngMax:57.525};
+const MAP_LANDMARKS = [
+  {lat:-20.1609, lng:57.5012, label:"Main Store", icon:"store"},
+  {lat:-20.235,  lng:57.4938, label:"Warehouse",  icon:"box"},
+];
+function mapXY(lat, lng, w, h){
+  const x = ((lng - MAP_BOUNDS.lngMin) / (MAP_BOUNDS.lngMax - MAP_BOUNDS.lngMin)) * w;
+  const y = ((MAP_BOUNDS.latMax - lat) / (MAP_BOUNDS.latMax - MAP_BOUNDS.latMin)) * h;
+  return [Math.max(10,Math.min(w-10,x)), Math.max(10,Math.min(h-10,y))];
+}
+function buildMiniMap(lat, lng, pulsing){
+  const w=300, h=190;
+  let landmarks = "";
+  MAP_LANDMARKS.forEach(l=>{
+    const [x,y] = mapXY(l.lat, l.lng, w, h);
+    landmarks += `<g transform="translate(${x},${y})">
+      <circle r="9" fill="var(--panel)" stroke="var(--line)" stroke-width="1.5"/>
+      <text x="0" y="3.5" font-size="9" text-anchor="middle" fill="var(--muted)">${l.icon==="store"?"S":"W"}</text>
+      <text x="0" y="20" font-size="8.5" text-anchor="middle" fill="var(--muted)">${l.label}</text>
+    </g>`;
+  });
+  let driverMark = "";
+  if(lat!=null && lng!=null){
+    const [x,y] = mapXY(lat, lng, w, h);
+    driverMark = `<g transform="translate(${x},${y})">
+      ${pulsing?`<circle r="12" fill="var(--accent)" opacity=".25"><animate attributeName="r" values="8;16;8" dur="1.8s" repeatCount="indefinite"/><animate attributeName="opacity" values=".35;0;.35" dur="1.8s" repeatCount="indefinite"/></circle>`:""}
+      <circle r="7" fill="var(--accent)" stroke="var(--panel)" stroke-width="2"/>
+    </g>`;
+  }
+  return `<div class="minimap"><svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
+    <rect width="${w}" height="${h}" fill="var(--panel-2)"/>
+    <path d="M0 40 L300 65 M0 120 L300 100 M40 0 L60 190 M230 0 L210 190" stroke="var(--line)" stroke-width="2" fill="none"/>
+    ${landmarks}
+    ${driverMark}
+  </svg></div>`;
+}
+
 // ---------------- Modals: customer tracking + review form ----------------
 function openTracking(deliveryId){
   const d = core.getDelivery(deliveryId); if(!d) return;
   const order = core.getOrder(d.orderId);
   const driver = d.driverId ? driverName(d.driverId) : "Not yet assigned";
-  const loc = d.location ? `${d.location.lat.toFixed(4)}, ${d.location.lng.toFixed(4)}<br><span class="muted">as of ${new Date(d.location.at).toLocaleTimeString()}</span>` : "Not available yet";
+  const loc = d.location ? `${d.location.lat.toFixed(4)}, ${d.location.lng.toFixed(4)} <span class="muted">· as of ${new Date(d.location.at).toLocaleTimeString()}</span>` : "Not available yet";
   showModal(`
     <h2>Track your order</h2>
     <p class="desc">This is the page a customer opens from a WhatsApp link or the website — it reads the same GPS feed the driver app writes.</p>
-    <p><b>Order</b> <span class="mono">${order?order.id:d.orderId}</span></p>
+    ${buildMiniMap(d.location?.lat, d.location?.lng, d.status!=="delivered")}
+    <p style="margin-top:12px"><b>Order</b> <span class="mono">${order?order.id:d.orderId}</span></p>
     <p><span class="badge ${d.status}">${d.status.replace("_"," ")}</span></p>
     <p><b>Driver:</b> ${driver}</p>
     <p><b>Last known location:</b><br>${loc}</p>
@@ -639,17 +975,95 @@ function showModal(innerHtml){
 }
 function closeModal(){ $("#modal-root").innerHTML = ""; }
 
+// ---------------- Driver App (mobile mockup) ----------------
+function renderDriverApp(){
+  const drivers = core.listUsers("driver");
+  const sel = $("#driver-select");
+  const prevValue = sel.value;
+  sel.innerHTML = drivers.map(d=>`<option value="${d.id}">${d.name}</option>`).join("");
+  if(prevValue && drivers.some(d=>d.id===prevValue)) sel.value = prevValue;
+  const driverId = sel.value || (drivers[0] && drivers[0].id);
+  const driver = drivers.find(d=>d.id===driverId);
+
+  const myDeliveries = db.deliveries.filter(d=>d.driverId===driverId && d.status!=="failed");
+  const active = myDeliveries.filter(d=>d.status!=="delivered");
+  const screen = $("#phone-screen");
+  if(!driver){ screen.innerHTML = `<p class="muted" style="font-size:12px">No drivers configured.</p>`; return; }
+
+  const nextAction = {unassigned:"picked_up", assigned:"picked_up", picked_up:"en_route", en_route:"delivered"};
+  const nextLabel = {picked_up:"Mark picked up", en_route:"Start en route", delivered:"Mark delivered"};
+
+  screen.innerHTML = `
+    <div class="phead"><b>${driver.name}</b><span class="pdot" title="Online"></span></div>
+    ${active.length===0
+      ? `<p class="muted" style="font-size:12px">No active deliveries for ${driver.name} right now — use the golden path or Delivery tab to assign one.</p>`
+      : active.map(d=>{
+          const order = core.getOrder(d.orderId);
+          const next = nextAction[d.status];
+          return `<div class="dcard">
+            <div class="dtop"><span class="mono">${d.id}</span><span class="badge ${d.status}">${d.status.replace("_"," ")}</span></div>
+            <div class="daddr">Order ${order?order.id:d.orderId} · ${order?productNames(order.items):""}</div>
+            <div class="dactions">
+              ${next ? `<button class="btn small primary" data-dnext="${d.id}" data-next="${next}">${nextLabel[next]}</button>` : ""}
+              <button class="btn small" data-dping="${d.id}">${icon("pin")} Ping GPS</button>
+              ${d.status==="en_route" ? `<button class="btn small" data-dproof="${d.id}">${icon("camera")} Proof</button>` : ""}
+            </div>
+            ${d.proof ? `<div class="muted" style="font-size:11px;margin-top:6px">${icon("check")} Proof captured</div>` : ""}
+          </div>`;
+        }).join("")
+    }
+  `;
+  $$("#phone-screen [data-dnext]").forEach(btn=>btn.addEventListener("click", e=>{
+    core.updateDeliveryStatus(e.target.closest("[data-dnext]").dataset.dnext, e.target.closest("[data-dnext]").dataset.next);
+    renderAll();
+  }));
+  $$("#phone-screen [data-dping]").forEach(btn=>btn.addEventListener("click", e=>{
+    const id = e.target.closest("[data-dping]").dataset.dping;
+    const lat=-20.1609+(Math.random()-0.5)*0.05, lng=57.5012+(Math.random()-0.5)*0.05;
+    core.pingLocation(id, lat, lng);
+    renderAll();
+  }));
+  $$("#phone-screen [data-dproof]").forEach(btn=>btn.addEventListener("click", e=>{
+    const id = e.target.closest("[data-dproof]").dataset.dproof;
+    core.attachProof(id, {type:"photo", note:"Captured via driver app", at:nowISO()});
+    renderAll();
+  }));
+}
+$("#driver-select").addEventListener("change", renderDriverApp);
+
+// ---------------- Reset demo ----------------
+const INITIAL_PRODUCTS = JSON.parse(JSON.stringify(db.products));
+function resetDemo(){
+  db.products.length = 0; INITIAL_PRODUCTS.forEach(p=>db.products.push({...p}));
+  db.customers.length = 0; db.orders.length = 0; db.deliveries.length = 0;
+  db.invoices.length = 0; db.reviews.length = 0; db.stockAudit.length = 0;
+  seq = 1; driverRotation = 0;
+  $("#wa-chat").innerHTML = ""; $("#gp-feed").innerHTML = ""; $("#rev-qr").innerHTML = ""; $("#seq-result").innerHTML = "";
+  goTab("overview");
+  renderAll();
+}
+$("#reset-demo").addEventListener("click", resetDemo);
+
 function renderAll(){
-  renderOverview(); renderWhatsapp(); renderInventory(); renderOrders(); renderDelivery(); renderFinance(); renderReviews();
+  renderOverview(); renderWhatsapp(); renderInventory(); renderOrders(); renderDelivery(); renderDriverApp(); renderFinance(); renderReviews();
 }
 
 $("#wa-send").addEventListener("click", ()=>{
   const phone = $("#wa-phone").value.trim(), name = $("#wa-name").value.trim(), message = $("#wa-message").value.trim();
   if(!phone || !message) return;
   const chat = $("#wa-chat");
-  chat.insertAdjacentHTML("beforeend", `<div class="bubble me">${escapeHtml(message)}</div>`);
+  const time = new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
+  chat.insertAdjacentHTML("beforeend", `
+    <div class="chatrow me">
+      <div class="avatar">${initials(name||phone)}</div>
+      <div class="bubble me">${escapeHtml(message)}<span class="meta">${time} <span class="ticks">✓✓</span></span></div>
+    </div>`);
   const result = waSimulate({phone, name, message});
-  chat.insertAdjacentHTML("beforeend", `<div class="bubble">${escapeHtml(result.reply)}</div>`);
+  chat.insertAdjacentHTML("beforeend", `
+    <div class="chatrow">
+      <div class="avatar">SG</div>
+      <div class="bubble">${escapeHtml(result.reply)}<span class="meta">${time} · Season Gift AI</span></div>
+    </div>`);
   chat.scrollTop = chat.scrollHeight;
   $("#wa-message").value = "";
   renderAll();
