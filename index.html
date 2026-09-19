@@ -268,6 +268,16 @@ tbody tr:hover{background:var(--panel-2)}
 }
 .wa-phone-name{font-weight:700;font-size:13px}
 .wa-phone-status{font-size:10.5px;opacity:.85}
+.wa-phone-shop{margin-left:auto;background:none;border:none;color:var(--accent-ink);font-size:17px;cursor:pointer;padding:4px}
+.wa-catalog-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.wa-catalog-item{border:1px solid var(--line);border-radius:9px;padding:9px;background:var(--panel-2);text-align:left;cursor:pointer;font:inherit}
+.wa-catalog-item:hover{border-color:var(--accent)}
+.wa-catalog-item .ci-name{font-weight:600;font-size:12.5px;margin-bottom:3px}
+.wa-catalog-item .ci-price{font-size:12px;color:var(--accent)}
+.wa-catalog-item .ci-stock{font-size:10.5px;color:var(--muted);margin-top:2px}
+.wa-suggest{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 4px 34px}
+.wa-suggest button{border:1px solid var(--accent);color:var(--accent);background:var(--panel);border-radius:999px;padding:6px 11px;font-size:11.5px;cursor:pointer;font-family:inherit}
+.wa-suggest button:hover{background:var(--accent-soft)}
 .wa-phone-body{flex:1;min-height:0;overflow-y:auto;padding:10px 8px;display:flex;flex-direction:column;gap:2px}
 .wa-phone-inputbar{
   flex:none;display:flex;align-items:center;gap:6px;padding:7px 8px;background:var(--panel-2);border-top:1px solid var(--line);
@@ -352,6 +362,7 @@ tbody tr:hover{background:var(--panel-2)}
             <div class="wa-phone-header">
               <div class="wa-phone-avatar">S</div>
               <div><div class="wa-phone-name">Season Gift</div><div class="wa-phone-status">online</div></div>
+              <button class="wa-phone-shop" id="wa-shop-btn" title="View catalogue">🎁</button>
             </div>
             <div class="wa-phone-body" id="wa-chat"></div>
             <div class="wa-phone-inputbar">
@@ -1116,6 +1127,7 @@ function resetDemo(){
   db.invoices.length = 0; db.reviews.length = 0; db.stockAudit.length = 0;
   seq = 1; driverRotation = 0;
   $("#wa-chat").innerHTML = ""; $("#gp-feed").innerHTML = ""; $("#rev-qr").innerHTML = ""; $("#seq-result").innerHTML = "";
+  waBoot();
   goTab("overview");
   renderAll();
 }
@@ -1187,8 +1199,9 @@ function waCompletePayment(order, method){
   renderAll();
 }
 
-$("#wa-send").addEventListener("click", ()=>{
-  const phone = $("#wa-phone").value.trim(), name = $("#wa-name").value.trim(), message = $("#wa-message").value.trim();
+function waSendMessage(overrideText){
+  const phone = $("#wa-phone").value.trim(), name = $("#wa-name").value.trim();
+  const message = (overrideText!=null ? overrideText : $("#wa-message").value).trim();
   if(!phone || !message) return;
   const chat = $("#wa-chat");
   const time = new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
@@ -1207,8 +1220,60 @@ $("#wa-send").addEventListener("click", ()=>{
   if(result.order) waShowPaymentOptions(result.order);
   $("#wa-message").value = "";
   renderAll();
-});
+}
+$("#wa-send").addEventListener("click", ()=>waSendMessage());
+$("#wa-message").addEventListener("keydown", e=>{ if(e.key==="Enter") waSendMessage(); });
 
+/* First-load greeting with quick-start suggestions, same pattern as the standalone WhatsApp demo */
+function waBoot(){
+  const chat = $("#wa-chat");
+  if(chat.children.length>0) return;
+  const time = new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
+  chat.insertAdjacentHTML("beforeend", `
+    <div class="chatrow">
+      <div class="avatar">SG</div>
+      <div class="bubble">Hi there! 👋 Welcome to Season Gift. I can help with prices, stock and delivery — what are you shopping for today?<span class="meta">${time} · Season Gift AI</span></div>
+    </div>`);
+  const suggest = document.createElement("div");
+  suggest.className = "wa-suggest";
+  [
+    ["🎁 Browse catalogue", null],
+    ["Do you have chocolate box deluxe?", "Do you have chocolate box deluxe?"],
+    ["Price of the Gift Hamper?", "How much is the Gift Hamper Classic?"],
+  ].forEach(([label, msg])=>{
+    const b = document.createElement("button");
+    b.textContent = label;
+    b.addEventListener("click", ()=>{ msg ? waSendMessage(msg) : openWaCatalog(); });
+    suggest.appendChild(b);
+  });
+  chat.appendChild(suggest);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+/* Catalogue modal — same core Product entity as the Inventory tab, browsed WhatsApp-native-shop style */
+function openWaCatalog(){
+  const products = core.listProducts();
+  const grid = products.map(p=>`
+    <button class="wa-catalog-item" data-prod="${p.id}">
+      <div class="ci-name">${p.name}</div>
+      <div class="ci-price">Rs ${p.price}</div>
+      <div class="ci-stock">${p.stock>0 ? p.stock+" in stock" : "Out of stock"}</div>
+    </button>`).join("");
+  showModal(`
+    <h2 data-icon="chat">Season Gift catalogue</h2>
+    <p class="desc">Same core Product entity the Inventory and Orders tabs read — tap one to ask about it in the chat.</p>
+    <div class="wa-catalog-grid">${grid}</div>
+  `);
+  applyIcons();
+  $$("[data-prod]").forEach(btn=>btn.addEventListener("click", e=>{
+    const p = products.find(p=>p.id===e.target.closest("[data-prod]").dataset.prod);
+    closeModal();
+    waSendMessage(`Hi, I'd like 1 ${p.name}`);
+  }));
+}
+$("#wa-shop-btn").addEventListener("click", openWaCatalog);
+
+waBoot();
 renderAll();
 })();
 </script>
