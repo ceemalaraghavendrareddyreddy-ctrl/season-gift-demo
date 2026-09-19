@@ -253,6 +253,32 @@ tbody tr:hover{background:var(--panel-2)}
 .dcard .daddr{font-size:11.5px;color:var(--muted);margin-bottom:8px}
 .dcard .dactions{display:flex;gap:6px;flex-wrap:wrap}
 .dcard .dactions button{flex:1;font-size:11.5px;padding:6px 6px}
+
+.phone.wa-phone{height:600px;display:flex;flex-direction:column}
+.phone.wa-phone .pscreen.wa-pscreen{
+  padding:0;flex:1;min-height:0;display:flex;flex-direction:column;background:var(--bg);
+}
+.wa-phone-header{
+  background:var(--forest-dark,var(--accent));background:linear-gradient(180deg,var(--accent),color-mix(in srgb, var(--accent) 80%, black));
+  color:var(--accent-ink);padding:10px 12px;display:flex;align-items:center;gap:9px;flex:none;
+}
+.wa-phone-avatar{
+  width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;
+  font-family:"Fraunces",serif;font-weight:700;font-size:13px;flex:none;
+}
+.wa-phone-name{font-weight:700;font-size:13px}
+.wa-phone-status{font-size:10.5px;opacity:.85}
+.wa-phone-body{flex:1;min-height:0;overflow-y:auto;padding:10px 8px;display:flex;flex-direction:column;gap:2px}
+.wa-phone-inputbar{
+  flex:none;display:flex;align-items:center;gap:6px;padding:7px 8px;background:var(--panel-2);border-top:1px solid var(--line);
+}
+.wa-phone-inputbar input{flex:1;border:none;border-radius:20px;padding:8px 12px;font-size:12.5px;background:var(--panel)}
+.wa-phone-inputbar input:focus{outline:2px solid var(--accent);outline-offset:0}
+.wa-phone-send{
+  width:30px;height:30px;border-radius:50%;border:none;background:var(--accent);color:var(--accent-ink);
+  font-size:13px;cursor:pointer;flex:none;display:flex;align-items:center;justify-content:center;
+}
+.wa-phone-body .feedcard{max-width:88%;margin:4px 0}
 .driverpane{display:grid;grid-template-columns:280px 1fr;gap:20px;align-items:start}
 @media (max-width:760px){.driverpane{grid-template-columns:1fr}}
 
@@ -314,24 +340,35 @@ tbody tr:hover{background:var(--panel-2)}
   </section>
 
   <section id="tab-whatsapp" class="tab">
-    <div class="grid cols-2">
-      <div class="card">
-        <h2 data-icon="chat">WhatsApp AI Agent</h2>
-        <p class="desc">Simulated webhook + AI parser. Reads live prices &amp; stock from the core Product entity — not a separate catalogue.</p>
-        <div class="row">
-          <input id="wa-phone" placeholder="+230 5xxx xxxx" value="+230 5123 4567" style="width:170px">
-          <input id="wa-name" placeholder="Customer name" value="Anushka" style="width:130px">
+    <div class="driverpane">
+      <div>
+        <div class="row" style="margin-bottom:12px">
+          <input id="wa-phone" placeholder="+230 5xxx xxxx" value="+230 5123 4567" style="width:150px">
+          <input id="wa-name" placeholder="Customer name" value="Anushka" style="width:110px">
         </div>
-        <div class="row" style="margin-top:8px">
-          <input id="wa-message" placeholder="e.g. I'd like 2 chocolate box deluxe" style="flex:1;min-width:200px" value="Hi, I'd like 2 chocolate box deluxe please">
-          <button class="btn primary" id="wa-send">Send</button>
+        <div class="phone wa-phone">
+          <div class="pnotch"></div>
+          <div class="pscreen wa-pscreen">
+            <div class="wa-phone-header">
+              <div class="wa-phone-avatar">S</div>
+              <div><div class="wa-phone-name">Season Gift</div><div class="wa-phone-status">online</div></div>
+            </div>
+            <div class="wa-phone-body" id="wa-chat"></div>
+            <div class="wa-phone-inputbar">
+              <input id="wa-message" placeholder="Type a message" value="Hi, I'd like 2 chocolate box deluxe please">
+              <button class="wa-phone-send" id="wa-send">➤</button>
+            </div>
+          </div>
         </div>
-        <div class="chat" id="wa-chat"></div>
       </div>
-      <div class="card">
-        <h2 data-icon="receipt">Leads → core Orders</h2>
-        <p class="desc">Every match becomes a "pending" Order on the core Customer/Order tables.</p>
-        <div class="tablewrap"><table id="wa-leads"><thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th></tr></thead><tbody></tbody></table></div>
+      <div>
+        <h3 class="eyebrow">WhatsApp AI Agent</h3>
+        <p class="desc">Simulated webhook + AI parser. Reads live prices &amp; stock from the core Product entity — not a separate catalogue.</p>
+        <div class="card section">
+          <h2 data-icon="receipt" style="font-size:14px">Leads → core Orders</h2>
+          <p class="desc" style="margin-bottom:10px">Every match becomes a "pending" Order on the core Customer/Order tables.</p>
+          <div class="tablewrap"><table id="wa-leads"><thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th></tr></thead><tbody></tbody></table></div>
+        </div>
       </div>
     </div>
   </section>
