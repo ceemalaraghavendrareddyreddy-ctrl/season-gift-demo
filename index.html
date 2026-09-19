@@ -1,0 +1,662 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Season Gift Console</title>
+<meta name="description" content="Interactive walkthrough of the modular Season Gift platform — WhatsApp AI, inventory, orders, delivery tracking, finance and QR reviews, all sharing one core." />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{
+  --bg:#f4f2ec;
+  --panel:#ffffff;
+  --panel-2:#faf8f3;
+  --ink:#1d1c19;
+  --muted:#716d63;
+  --line:#e5e1d6;
+  --accent:#2f6f5e;
+  --accent-ink:#f4f2ec;
+  --accent-soft:#e1ece7;
+  --ok:#2f6f5e;
+  --ok-soft:#dfece5;
+  --warn:#a06a1f;
+  --warn-soft:#f1e3c9;
+  --bad:#a1403a;
+  --bad-soft:#f2ddd9;
+  --info:#3a5f8a;
+  --info-soft:#dfe6f0;
+  --radius:12px;
+  --shadow:0 1px 2px rgba(28,26,20,.06), 0 8px 24px -16px rgba(28,26,20,.18);
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#15171a; --panel:#1d2023; --panel-2:#22262a; --ink:#eeece5; --muted:#a3a099;
+    --line:#33373b; --accent:#5fb69a; --accent-ink:#0f1a17; --accent-soft:#1c2e28;
+    --ok:#5fb69a; --ok-soft:#1c2e28; --warn:#d9a44f; --warn-soft:#332918;
+    --bad:#e2837c; --bad-soft:#33201e; --info:#7fa4d1; --info-soft:#1d2733;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -16px rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15171a; --panel:#1d2023; --panel-2:#22262a; --ink:#eeece5; --muted:#a3a099;
+  --line:#33373b; --accent:#5fb69a; --accent-ink:#0f1a17; --accent-soft:#1c2e28;
+  --ok:#5fb69a; --ok-soft:#1c2e28; --warn:#d9a44f; --warn-soft:#332918;
+  --bad:#e2837c; --bad-soft:#33201e; --info:#7fa4d1; --info-soft:#1d2733;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -16px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box}
+html,body{height:auto}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 "Inter",-apple-system,sans-serif}
+.mono{font-family:"JetBrains Mono",monospace}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px 60px}
+
+.topbar{
+  display:flex;align-items:center;gap:14px;padding:22px 20px 16px;
+  border-bottom:1px solid var(--line);flex-wrap:wrap;
+}
+.topbar .mark{
+  width:38px;height:38px;border-radius:10px;background:var(--accent);color:var(--accent-ink);
+  display:flex;align-items:center;justify-content:center;font-family:"Fraunces",serif;font-weight:700;font-size:18px;flex:none;
+}
+.topbar h1{font-family:"Fraunces",serif;font-weight:600;font-size:21px;margin:0;letter-spacing:-.01em}
+.topbar .tag{color:var(--muted);font-size:12.5px}
+.topbar .spacer{flex:1}
+.livebadge{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.livebadge .dot{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px var(--ok-soft)}
+
+nav.tabs{
+  display:flex;gap:2px;padding:10px 20px 0;max-width:1180px;margin:0 auto;
+  border-bottom:1px solid var(--line);overflow-x:auto;
+}
+nav.tabs button{
+  background:none;border:none;color:var(--muted);padding:9px 14px;border-radius:10px 10px 0 0;
+  cursor:pointer;font:600 13px "Inter";white-space:nowrap;
+}
+nav.tabs button.active{color:var(--ink);background:var(--panel);border:1px solid var(--line);border-bottom-color:var(--panel);margin-bottom:-1px}
+
+main.wrap{padding-top:22px}
+.tab{display:none}
+.tab.active{display:block;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(2px)}to{opacity:1;transform:none}}
+
+.grid{display:grid;gap:14px}
+.grid.cols-4{grid-template-columns:repeat(4,1fr)}
+.grid.cols-2{grid-template-columns:1.3fr 1fr}
+@media (max-width:820px){.grid.cols-4{grid-template-columns:repeat(2,1fr)}.grid.cols-2{grid-template-columns:1fr}}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow)}
+.card h2{font-family:"Fraunces",serif;font-weight:600;font-size:16px;margin:0 0 4px;letter-spacing:-.01em}
+.card .desc{color:var(--muted);font-size:12.5px;margin:0 0 14px}
+.section{margin-bottom:16px}
+
+.stat{padding:16px 18px}
+.stat .label{color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.stat .value{font-family:"Fraunces",serif;font-size:28px;font-weight:600;margin-top:6px}
+.stat .value.small{font-size:22px}
+
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+tr:last-child td{border-bottom:none}
+.tablewrap{overflow-x:auto}
+
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:600}
+.badge.pending,.badge.picked_up,.badge.en_route{background:var(--warn-soft);color:var(--warn)}
+.badge.confirmed,.badge.delivered,.badge.paid{background:var(--ok-soft);color:var(--ok)}
+.badge.unassigned{background:var(--line);color:var(--muted)}
+.badge.assigned{background:var(--info-soft);color:var(--info)}
+.badge.failed{background:var(--bad-soft);color:var(--bad)}
+
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.row.between{justify-content:space-between}
+
+input,select,textarea,button.btn{
+  font:inherit;border:1px solid var(--line);border-radius:8px;padding:8px 11px;
+  background:var(--panel-2);color:var(--ink);
+}
+input:focus,select:focus,textarea:focus,button.btn:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+button.btn{cursor:pointer;font-weight:600;background:var(--panel)}
+button.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button.btn.small{padding:5px 9px;font-size:12px}
+button.btn:disabled{opacity:.5;cursor:not-allowed}
+
+h3.eyebrow{font-size:11.5px;margin:18px 0 8px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+.muted{color:var(--muted)}
+.pill-list{display:flex;gap:6px;flex-wrap:wrap}
+
+.chat{display:flex;flex-direction:column;gap:8px;margin-top:14px;max-height:340px;overflow-y:auto;padding-right:4px}
+.bubble{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:9px 13px;max-width:78%;font-size:13.5px}
+.bubble.me{margin-left:auto;background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.bubble .meta{display:block;font-size:10.5px;opacity:.7;margin-top:3px}
+
+.qrbox{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap}
+.qrbox .qrimg{background:#fff;padding:10px;border-radius:10px;border:1px solid var(--line)}
+.qrbox a{color:var(--accent);word-break:break-all}
+
+.stars{font-size:20px;letter-spacing:3px;cursor:pointer;color:var(--muted)}
+.stars .on{color:var(--warn)}
+
+.flow{
+  display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:4px;
+}
+@media (max-width:820px){.flow{grid-template-columns:repeat(3,1fr)}}
+.flow .node{
+  border:1px dashed var(--line);border-radius:10px;padding:10px;text-align:center;font-size:11.5px;color:var(--muted);
+}
+.flow .node b{display:block;color:var(--ink);font-size:12.5px;margin-bottom:2px}
+
+.modalcard{max-width:420px;margin:60px auto}
+.linklike{color:var(--accent);cursor:pointer;text-decoration:underline;background:none;border:none;font:inherit;padding:0}
+::-webkit-scrollbar{height:8px;width:8px}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="mark">SG</div>
+  <div>
+    <h1>Season Gift Console</h1>
+    <div class="tag">Live walkthrough of the modular platform — runs entirely in this page, no server required</div>
+  </div>
+  <div class="spacer"></div>
+  <div class="livebadge"><span class="dot"></span> Demo data, resets on reload</div>
+</div>
+
+<nav class="tabs" id="tabs">
+  <button data-tab="overview" class="active">Overview</button>
+  <button data-tab="whatsapp">WhatsApp AI</button>
+  <button data-tab="inventory">Inventory</button>
+  <button data-tab="orders">Orders</button>
+  <button data-tab="delivery">Delivery &amp; Drivers</button>
+  <button data-tab="finance">Finance</button>
+  <button data-tab="reviews">QR Reviews</button>
+</nav>
+
+<main class="wrap">
+
+  <section id="tab-overview" class="tab active">
+    <div class="grid cols-4 section" id="overview-stats"></div>
+    <div class="card section">
+      <h2>One core, five modules</h2>
+      <p class="desc">Every tab reads a different feature area, but all of them write into the same core entities — Customer, Product, Order, Delivery, Invoice. Try the golden path below and watch one order ripple across every module.</p>
+      <div class="flow" id="flow"></div>
+    </div>
+    <div class="card">
+      <h2>Try the golden path</h2>
+      <p class="desc" style="margin-bottom:10px">One click per step — each one calls the same functions the tabs use.</p>
+      <div class="row" id="golden-path"></div>
+    </div>
+  </section>
+
+  <section id="tab-whatsapp" class="tab">
+    <div class="grid cols-2">
+      <div class="card">
+        <h2>WhatsApp AI Agent</h2>
+        <p class="desc">Simulated webhook + AI parser. Reads live prices &amp; stock from the core Product entity — not a separate catalogue.</p>
+        <div class="row">
+          <input id="wa-phone" placeholder="+230 5xxx xxxx" value="+230 5123 4567" style="width:170px">
+          <input id="wa-name" placeholder="Customer name" value="Anushka" style="width:130px">
+        </div>
+        <div class="row" style="margin-top:8px">
+          <input id="wa-message" placeholder="e.g. I'd like 2 chocolate box deluxe" style="flex:1;min-width:200px" value="Hi, I'd like 2 chocolate box deluxe please">
+          <button class="btn primary" id="wa-send">Send</button>
+        </div>
+        <div class="chat" id="wa-chat"></div>
+      </div>
+      <div class="card">
+        <h2>Leads → core Orders</h2>
+        <p class="desc">Every match becomes a "pending" Order on the core Customer/Order tables.</p>
+        <div class="tablewrap"><table id="wa-leads"><thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th></tr></thead><tbody></tbody></table></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-inventory" class="tab">
+    <div class="card section">
+      <h2>Products &amp; stock</h2>
+      <p class="desc">Shared with WhatsApp AI and (in production) the website — update a price once, it applies everywhere.</p>
+      <div class="tablewrap"><table id="inv-products"><thead><tr><th>Product</th><th>Location</th><th>Price (Rs)</th><th>Stock</th><th>Reorder at</th><th></th></tr></thead><tbody></tbody></table></div>
+    </div>
+    <div class="grid cols-2">
+      <div class="card">
+        <h2>Low-stock alerts</h2>
+        <div id="inv-low" class="pill-list muted">—</div>
+      </div>
+      <div class="card">
+        <h2>Stock audit log</h2>
+        <div class="tablewrap"><table id="inv-audit"><thead><tr><th>When</th><th>Product</th><th>Δ</th><th>Reason</th></tr></thead><tbody></tbody></table></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-orders" class="tab">
+    <div class="card">
+      <h2>All orders</h2>
+      <p class="desc">WhatsApp, website and in-store orders share one pipeline, so Delivery and Finance never need to know where an order came from.</p>
+      <div class="tablewrap"><table id="ord-table"><thead><tr><th>Order</th><th>Source</th><th>Customer</th><th>Total (Rs)</th><th>Status</th><th></th></tr></thead><tbody></tbody></table></div>
+    </div>
+  </section>
+
+  <section id="tab-delivery" class="tab">
+    <div class="card section">
+      <h2>Dispatch — today's deliveries</h2>
+      <div class="tablewrap"><table id="del-table"><thead><tr><th>Delivery</th><th>Order</th><th>Driver</th><th>Status</th><th>Last GPS ping</th><th>Track</th></tr></thead><tbody></tbody></table></div>
+    </div>
+    <div class="grid cols-2">
+      <div class="card">
+        <h2>Route sequencing</h2>
+        <p class="desc">Nearest-neighbor, v1 scope — no full optimizer. Demo stops around Port Louis.</p>
+        <button class="btn" id="seq-run">Sequence demo stops</button>
+        <ol id="seq-result" style="margin-top:10px;padding-left:18px"></ol>
+      </div>
+      <div class="card">
+        <h2>Customer tracking</h2>
+        <p class="desc">Same GPS feed the driver app writes — this is what replaces hardware fleet tracking.</p>
+        <div class="row"><select id="track-select"></select><button class="btn" id="track-open">Open tracking view</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-finance" class="tab">
+    <div class="card section">
+      <h2>Invoices</h2>
+      <p class="desc">A synced read replica of Ledger Book — not a second source of truth for money.</p>
+      <div class="tablewrap"><table id="fin-invoices"><thead><tr><th>Ledger ID</th><th>Order</th><th>Amount (Rs)</th><th>Status</th><th>Issued</th><th></th></tr></thead><tbody></tbody></table></div>
+    </div>
+    <div class="card"><h2>Overdue alerts</h2><div id="fin-overdue" class="muted">—</div></div>
+  </section>
+
+  <section id="tab-reviews" class="tab">
+    <div class="card section">
+      <h2>Generate a review QR</h2>
+      <p class="desc">One QR per completed delivery, linking to a short review form tied to the order.</p>
+      <div class="row"><select id="rev-select"></select><button class="btn primary" id="rev-generate">Generate QR</button></div>
+      <div id="rev-qr" class="qrbox section" style="margin-top:14px"></div>
+    </div>
+    <div class="card"><h2>Submitted reviews</h2>
+      <div class="tablewrap"><table id="rev-table"><thead><tr><th>Order</th><th>Rating</th><th>Comment</th><th>When</th></tr></thead><tbody></tbody></table></div>
+    </div>
+  </section>
+
+</main>
+
+<div id="modal-root"></div>
+
+<script>
+(function(){
+"use strict";
+
+// ---------------- Core in-memory "shared database" ----------------
+let seq = 1;
+const nextId = (p) => `${p}-${String(seq++).padStart(4,"0")}`;
+const nowISO = () => new Date().toISOString();
+
+const db = {
+  users: [
+    {id:"usr-0001",name:"Owner (Season Gift)",role:"owner"},
+    {id:"usr-0002",name:"Priya (Staff)",role:"staff"},
+    {id:"usr-0003",name:"Ravi (Driver)",role:"driver"},
+    {id:"usr-0004",name:"Ken (Driver)",role:"driver"},
+  ],
+  customers: [],
+  products: [
+    {id:"prd-0001",name:"Gift Hamper — Classic",price:950,stock:24,location:"Main Store",reorderThreshold:8},
+    {id:"prd-0002",name:"Chocolate Box — Deluxe",price:480,stock:6,location:"Main Store",reorderThreshold:10},
+    {id:"prd-0003",name:"Flower Bouquet — Rose Mix",price:650,stock:15,location:"Main Store",reorderThreshold:5},
+    {id:"prd-0004",name:"Personalised Mug",price:320,stock:40,location:"Warehouse",reorderThreshold:12},
+  ],
+  orders: [],
+  deliveries: [],
+  invoices: [],
+  reviews: [],
+  stockAudit: [],
+};
+
+const ledgerBook = {
+  createInvoice(order){
+    return {ledgerId:`LB-${order.id}`, orderId: order.id, amount: order.total, status:"pending", issuedAt: nowISO()};
+  }
+};
+
+// ---------------- Core API ----------------
+const core = {
+  listProducts: () => db.products,
+  updateProductPrice(id, price){ const p = db.products.find(p=>p.id===id); if(p) p.price = price; return p; },
+  findOrCreateCustomer({name, phone}){
+    let c = db.customers.find(c=>c.phone===phone);
+    if(!c){ c = {id: nextId("cus"), name: name||phone, phone, createdAt: nowISO()}; db.customers.push(c); }
+    return c;
+  },
+  listCustomers: () => db.customers,
+  createOrder({customerId, items, source, status="pending"}){
+    const total = items.reduce((s,it)=>{ const p = db.products.find(p=>p.id===it.productId); return s + (p? p.price*it.qty : 0); },0);
+    const order = {id: nextId("ord"), customerId, items, source, status, total, createdAt: nowISO()};
+    db.orders.push(order);
+    return order;
+  },
+  listOrders: () => db.orders,
+  getOrder: (id) => db.orders.find(o=>o.id===id),
+  confirmOrder(id){
+    const order = core.getOrder(id); if(!order) throw new Error("order not found");
+    order.status = "confirmed";
+    for(const it of order.items){
+      const p = db.products.find(p=>p.id===it.productId);
+      if(p){ const before=p.stock; p.stock=Math.max(0,p.stock-it.qty);
+        db.stockAudit.push({id:nextId("aud"), productId:p.id, change:-it.qty, before, after:p.stock, reason:`order ${order.id} confirmed`, at:nowISO()});
+      }
+    }
+    return order;
+  },
+  createDelivery({orderId, driverId}){
+    const d = {id:nextId("del"), orderId, driverId: driverId||null, status:"unassigned", location:null, proof:null, createdAt:nowISO()};
+    db.deliveries.push(d); return d;
+  },
+  listDeliveries: () => db.deliveries,
+  getDelivery: (id) => db.deliveries.find(d=>d.id===id),
+  updateDeliveryStatus(id, status){ const d=core.getDelivery(id); if(!d) throw new Error("not found"); d.status=status; return d; },
+  assignDriver(id, driverId){ const d=core.getDelivery(id); if(!d) throw new Error("not found"); d.driverId=driverId; d.status="assigned"; return d; },
+  pingLocation(id, lat, lng){ const d=core.getDelivery(id); if(!d) throw new Error("not found"); d.location={lat,lng,at:nowISO()}; return d; },
+  listUsers: (role) => role ? db.users.filter(u=>u.role===role) : db.users,
+};
+
+// ---------------- WhatsApp module ----------------
+function waParse(text){
+  const lower = text.toLowerCase();
+  const matched = db.products.filter(p => lower.includes(p.name.toLowerCase().split(" ")[0]));
+  const qtyMatch = lower.match(/(\d+)\s*x?/);
+  const qty = qtyMatch ? parseInt(qtyMatch[1],10) : 1;
+  return {matched, qty};
+}
+function waSimulate({phone, name, message}){
+  const customer = core.findOrCreateCustomer({name, phone});
+  const {matched, qty} = waParse(message);
+  if(matched.length === 0){
+    return {reply:`Hi ${customer.name}! I couldn't match a product in "${message}". A staff member will follow up shortly.`, handoff:true, customer};
+  }
+  const items = matched.map(p=>({productId:p.id, qty}));
+  const order = core.createOrder({customerId:customer.id, items, source:"whatsapp", status:"pending"});
+  return {reply:`Thanks ${customer.name}! I've noted ${qty} x ${matched.map(p=>p.name).join(", ")} — total Rs ${order.total}. Our team will confirm shortly.`, handoff:false, customer, order};
+}
+
+// ---------------- Inventory module ----------------
+function invRestock(productId, qty){
+  const p = db.products.find(p=>p.id===productId); if(!p) return;
+  const before = p.stock; p.stock += qty;
+  db.stockAudit.push({id:nextId("man"), productId:p.id, change:qty, before, after:p.stock, reason:"manual restock", at:nowISO()});
+  return p;
+}
+
+// ---------------- Finance module ----------------
+function finConfirmAndInvoice(orderId){
+  const order = core.confirmOrder(orderId);
+  const invoice = ledgerBook.createInvoice(order);
+  db.invoices.push(invoice);
+  return {order, invoice};
+}
+function finMarkPaid(ledgerId){ const inv = db.invoices.find(i=>i.ledgerId===ledgerId); if(inv) inv.status="paid"; return inv; }
+
+// ---------------- Delivery module ----------------
+function routeSequence(stops, start){
+  start = start || {lat:-20.1609, lng:57.5012};
+  const remaining = [...stops]; const sequenced = []; let current = start;
+  while(remaining.length){
+    let bestIdx=0, bestDist=Infinity;
+    remaining.forEach((s,idx)=>{ const dist=Math.hypot(s.lat-current.lat, s.lng-current.lng); if(dist<bestDist){bestDist=dist; bestIdx=idx;} });
+    const [next] = remaining.splice(bestIdx,1); sequenced.push(next); current = next;
+  }
+  return sequenced;
+}
+
+// ---------------- Reviews module ----------------
+function reviewSubmit({deliveryId, rating, comment}){
+  const delivery = core.getDelivery(deliveryId); if(!delivery) throw new Error("not found");
+  const review = {id:nextId("rev"), deliveryId, orderId: delivery.orderId, rating:Number(rating), comment:comment||"", at:nowISO()};
+  db.reviews.push(review); return review;
+}
+
+// ==================== VIEW LAYER (dashboard) ====================
+const $ = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function productNames(items){ return items.map(it=>{ const p=db.products.find(p=>p.id===it.productId); return `${it.qty} x ${p?p.name:it.productId}`; }).join(", "); }
+function customerName(id){ const c=db.customers.find(c=>c.id===id); return c?c.name:id; }
+function driverName(id){ const u=db.users.find(u=>u.id===id); return u?u.name:"—"; }
+
+$$("#tabs button").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    $$("#tabs button").forEach(b=>b.classList.remove("active"));
+    $$(".tab").forEach(t=>t.classList.remove("active"));
+    btn.classList.add("active");
+    $(`#tab-${btn.dataset.tab}`).classList.add("active");
+  });
+});
+
+function goTab(name){
+  $$("#tabs button").forEach(b=>b.classList.toggle("active", b.dataset.tab===name));
+  $$(".tab").forEach(t=>t.classList.toggle("active", t.id===`tab-${name}`));
+}
+
+function renderOverview(){
+  const orders = db.orders, deliveries = db.deliveries, products = db.products;
+  const stats = [
+    ["Orders total", orders.length],
+    ["Pending orders", orders.filter(o=>o.status==="pending").length],
+    ["Confirmed revenue (Rs)", orders.filter(o=>o.status==="confirmed").reduce((s,o)=>s+o.total,0)],
+    ["Low-stock products", products.filter(p=>p.stock<=p.reorderThreshold).length],
+    ["Active deliveries", deliveries.filter(d=>!["delivered","failed"].includes(d.status)).length],
+    ["Reviews collected", db.reviews.length],
+    ["Invoices unpaid", db.invoices.filter(i=>i.status==="pending").length],
+  ];
+  $("#overview-stats").innerHTML = stats.map(([l,v])=>`<div class="card stat"><div class="label">${l}</div><div class="value ${String(v).length>4?'small':''}">${v}</div></div>`).join("");
+
+  $("#flow").innerHTML = ["WhatsApp AI","Website","In-store"].map(s=>`<div class="node"><b>${s}</b>writes a core Order</div>`).join("")
+    + `<div class="node"><b>Core Order</b>one shared pipeline</div>`
+    + `<div class="node"><b>Finance</b>invoices via Ledger Book</div>`
+    + `<div class="node"><b>Delivery</b>tracked to the door</div>`;
+
+  const hasPending = orders.some(o=>o.status==="pending");
+  const hasConfirmedNoDelivery = orders.some(o=>o.status==="confirmed" && !deliveries.some(d=>d.orderId===o.id));
+  const hasUnassigned = deliveries.some(d=>d.status==="unassigned");
+  const hasAssigned = deliveries.some(d=>["assigned","picked_up","en_route"].includes(d.status));
+  const hasDelivered = deliveries.some(d=>d.status==="delivered");
+  $("#golden-path").innerHTML = `
+    <button class="btn primary" id="gp-1">1. Send a WhatsApp order</button>
+    <button class="btn" id="gp-2" ${hasPending?'':'disabled'}>2. Confirm + invoice</button>
+    <button class="btn" id="gp-3" ${hasConfirmedNoDelivery?'':'disabled'}>3. Create delivery</button>
+    <button class="btn" id="gp-4" ${hasUnassigned?'':'disabled'}>4. Assign driver + ping GPS</button>
+    <button class="btn" id="gp-5" ${hasAssigned?'':'disabled'}>5. Mark delivered</button>
+    <button class="btn" id="gp-6" ${hasDelivered?'':'disabled'}>6. Generate review QR</button>
+  `;
+  $("#gp-1")?.addEventListener("click", ()=>{ goTab("whatsapp"); $("#wa-message").focus(); });
+  $("#gp-2")?.addEventListener("click", ()=>{ goTab("orders"); });
+  $("#gp-3")?.addEventListener("click", ()=>{ goTab("orders"); });
+  $("#gp-4")?.addEventListener("click", ()=>{ goTab("delivery"); });
+  $("#gp-5")?.addEventListener("click", ()=>{ goTab("delivery"); });
+  $("#gp-6")?.addEventListener("click", ()=>{ goTab("reviews"); });
+}
+
+function renderWhatsapp(){
+  const leads = db.orders.filter(o=>o.source==="whatsapp");
+  $("#wa-leads tbody").innerHTML = leads.map(o=>`<tr>
+    <td class="mono">${o.id}</td><td>${customerName(o.customerId)}</td><td>${productNames(o.items)}</td>
+    <td>${o.total}</td><td><span class="badge ${o.status}">${o.status}</span></td></tr>`).join("")
+    || `<tr><td colspan="5" class="muted">No leads yet — send a message.</td></tr>`;
+}
+
+function renderInventory(){
+  $("#inv-products tbody").innerHTML = db.products.map(p=>`<tr>
+    <td>${p.name}</td><td>${p.location}</td>
+    <td><input type="number" value="${p.price}" data-price="${p.id}" style="width:80px"></td>
+    <td>${p.stock}</td><td>${p.reorderThreshold}</td>
+    <td><button class="btn small" data-restock="${p.id}">+10 stock</button></td>
+  </tr>`).join("");
+  $$("#inv-products [data-price]").forEach(inp=>inp.addEventListener("change", e=>{
+    core.updateProductPrice(e.target.dataset.price, Number(e.target.value)); renderAll();
+  }));
+  $$("#inv-products [data-restock]").forEach(btn=>btn.addEventListener("click", e=>{
+    invRestock(e.target.dataset.restock, 10); renderAll();
+  }));
+  const low = db.products.filter(p=>p.stock<=p.reorderThreshold);
+  $("#inv-low").innerHTML = low.length ? low.map(p=>`<span class="badge unassigned">${p.name}: ${p.stock} left</span>`).join(" ") : "No low-stock products.";
+  $("#inv-audit tbody").innerHTML = db.stockAudit.slice().reverse().slice(0,15).map(a=>{
+    const p = db.products.find(p=>p.id===a.productId);
+    return `<tr><td>${new Date(a.at).toLocaleTimeString()}</td><td>${p?p.name:a.productId}</td><td>${a.change>0?"+":""}${a.change}</td><td class="muted">${a.reason}</td></tr>`;
+  }).join("") || `<tr><td colspan="4" class="muted">No stock movements yet.</td></tr>`;
+}
+
+function renderOrders(){
+  $("#ord-table tbody").innerHTML = db.orders.slice().reverse().map(o=>`<tr>
+    <td class="mono">${o.id}</td><td>${o.source}</td><td>${customerName(o.customerId)}</td><td>${o.total}</td>
+    <td><span class="badge ${o.status}">${o.status}</span></td>
+    <td>${o.status==="pending"?`<button class="btn small primary" data-confirm="${o.id}">Confirm + invoice</button>`:""}
+      <button class="btn small" data-mkdel="${o.id}">Create delivery</button></td>
+  </tr>`).join("") || `<tr><td colspan="6" class="muted">No orders yet.</td></tr>`;
+  $$("#ord-table [data-confirm]").forEach(btn=>btn.addEventListener("click", e=>{ finConfirmAndInvoice(e.target.dataset.confirm); renderAll(); }));
+  $$("#ord-table [data-mkdel]").forEach(btn=>btn.addEventListener("click", e=>{ core.createDelivery({orderId:e.target.dataset.mkdel}); renderAll(); goTab("delivery"); }));
+}
+
+function renderDelivery(){
+  const drivers = core.listUsers("driver");
+  $("#del-table tbody").innerHTML = db.deliveries.slice().reverse().map(d=>{
+    const order = core.getOrder(d.orderId);
+    const driverOpts = `<option value="">—</option>` + drivers.map(dr=>`<option value="${dr.id}" ${d.driverId===dr.id?"selected":""}>${dr.name}</option>`).join("");
+    const statusOpts = ["unassigned","assigned","picked_up","en_route","delivered","failed"].map(s=>`<option value="${s}" ${d.status===s?"selected":""}>${s}</option>`).join("");
+    return `<tr>
+      <td class="mono">${d.id}</td><td class="mono">${order?order.id:d.orderId}</td>
+      <td><select data-assign="${d.id}">${driverOpts}</select></td>
+      <td><select data-status="${d.id}">${statusOpts}</select></td>
+      <td>${d.location?`${d.location.lat.toFixed(3)}, ${d.location.lng.toFixed(3)} <span class="muted">@ ${new Date(d.location.at).toLocaleTimeString()}</span>`:"—"}
+        <button class="btn small" data-ping="${d.id}">Ping</button></td>
+      <td><button class="linklike" data-track="${d.id}">Open ↗</button></td>
+    </tr>`;
+  }).join("") || `<tr><td colspan="6" class="muted">No deliveries yet.</td></tr>`;
+
+  $$("#del-table [data-assign]").forEach(sel=>sel.addEventListener("change", e=>{ if(e.target.value) core.assignDriver(e.target.dataset.assign, e.target.value); renderAll(); }));
+  $$("#del-table [data-status]").forEach(sel=>sel.addEventListener("change", e=>{ core.updateDeliveryStatus(e.target.dataset.status, e.target.value); renderAll(); }));
+  $$("#del-table [data-ping]").forEach(btn=>btn.addEventListener("click", e=>{
+    const lat=-20.1609+(Math.random()-0.5)*0.05, lng=57.5012+(Math.random()-0.5)*0.05;
+    core.pingLocation(e.target.dataset.ping, lat, lng); renderAll();
+  }));
+  $$("#del-table [data-track]").forEach(btn=>btn.addEventListener("click", e=>openTracking(e.target.dataset.track)));
+
+  $("#track-select").innerHTML = db.deliveries.map(d=>`<option value="${d.id}">${d.id}</option>`).join("") || `<option value="">No deliveries</option>`;
+}
+
+$("#seq-run").addEventListener("click", ()=>{
+  const stops = [
+    {id:"A",lat:-20.1609,lng:57.5012},{id:"B",lat:-20.235,lng:57.4938},{id:"C",lat:-20.1015,lng:57.5183},
+    {id:"D",lat:-20.3,lng:57.4767},{id:"E",lat:-20.1444,lng:57.4988},
+  ];
+  const seqd = routeSequence(stops);
+  $("#seq-result").innerHTML = seqd.map(s=>`<li>Stop ${s.id} (${s.lat.toFixed(3)}, ${s.lng.toFixed(3)})</li>`).join("");
+});
+$("#track-open").addEventListener("click", ()=>{ const id=$("#track-select").value; if(id) openTracking(id); });
+
+function renderFinance(){
+  $("#fin-invoices tbody").innerHTML = db.invoices.slice().reverse().map(i=>`<tr>
+    <td class="mono">${i.ledgerId}</td><td class="mono">${i.orderId}</td><td>${i.amount}</td>
+    <td><span class="badge ${i.status}">${i.status}</span></td><td>${new Date(i.issuedAt).toLocaleString()}</td>
+    <td>${i.status==="pending"?`<button class="btn small" data-pay="${i.ledgerId}">Mark paid</button>`:""}</td>
+  </tr>`).join("") || `<tr><td colspan="6" class="muted">No invoices yet.</td></tr>`;
+  $$("#fin-invoices [data-pay]").forEach(btn=>btn.addEventListener("click", e=>{ finMarkPaid(e.target.dataset.pay); renderAll(); }));
+  const cutoff = 1000*60*60*24*7;
+  const overdue = db.invoices.filter(i=>i.status==="pending" && Date.now()-new Date(i.issuedAt).getTime()>cutoff);
+  $("#fin-overdue").textContent = overdue.length ? `${overdue.length} invoice(s) overdue.` : "No overdue invoices.";
+}
+
+function renderReviews(){
+  const delivered = db.deliveries.filter(d=>d.status==="delivered");
+  $("#rev-select").innerHTML = delivered.map(d=>`<option value="${d.id}">${d.id} (order ${d.orderId})</option>`).join("") || `<option value="">No delivered orders yet</option>`;
+  $("#rev-table tbody").innerHTML = db.reviews.slice().reverse().map(r=>`<tr>
+    <td class="mono">${r.orderId}</td><td>${"★".repeat(r.rating)}${"☆".repeat(5-r.rating)}</td>
+    <td>${escapeHtml(r.comment)}</td><td>${new Date(r.at).toLocaleString()}</td></tr>`).join("") || `<tr><td colspan="4" class="muted">No reviews yet.</td></tr>`;
+}
+
+$("#rev-generate").addEventListener("click", ()=>{
+  const id = $("#rev-select").value; if(!id) return;
+  const url = `#review:${id}`;
+  const box = $("#rev-qr");
+  box.innerHTML = `<div class="qrimg" id="qr-target"></div><div><p class="muted">Scan or open the review link:</p><button class="linklike" id="qr-openlink">${url}</button></div>`;
+  new QRCode(document.getElementById("qr-target"), {text: location.href.split('#')[0] + url, width:180, height:180});
+  $("#qr-openlink").addEventListener("click", ()=>openReview(id));
+});
+
+// ---------------- Modals: customer tracking + review form ----------------
+function openTracking(deliveryId){
+  const d = core.getDelivery(deliveryId); if(!d) return;
+  const order = core.getOrder(d.orderId);
+  const driver = d.driverId ? driverName(d.driverId) : "Not yet assigned";
+  const loc = d.location ? `${d.location.lat.toFixed(4)}, ${d.location.lng.toFixed(4)}<br><span class="muted">as of ${new Date(d.location.at).toLocaleTimeString()}</span>` : "Not available yet";
+  showModal(`
+    <h2>Track your order</h2>
+    <p class="desc">This is the page a customer opens from a WhatsApp link or the website — it reads the same GPS feed the driver app writes.</p>
+    <p><b>Order</b> <span class="mono">${order?order.id:d.orderId}</span></p>
+    <p><span class="badge ${d.status}">${d.status.replace("_"," ")}</span></p>
+    <p><b>Driver:</b> ${driver}</p>
+    <p><b>Last known location:</b><br>${loc}</p>
+  `);
+}
+function openReview(deliveryId){
+  const d = core.getDelivery(deliveryId); if(!d) return;
+  let rating = 0;
+  showModal(`
+    <h2>How was your delivery?</h2>
+    <p class="desc">Order <span class="mono">${d.orderId}</span></p>
+    <div class="stars" id="modal-stars">☆☆☆☆☆</div>
+    <textarea id="modal-comment" placeholder="Tell us more (optional)" style="width:100%;margin-top:10px" rows="3"></textarea>
+    <button class="btn primary" id="modal-submit" style="margin-top:10px">Submit review</button>
+    <p id="modal-thanks" class="muted" style="display:none;margin-top:8px">Thanks for your feedback!</p>
+  `);
+  const starsEl = $("#modal-stars");
+  const render = ()=>{ starsEl.innerHTML = Array.from({length:5}).map((_,i)=>`<span class="${i<rating?'on':''}">${i<rating?'★':'☆'}</span>`).join(""); };
+  render();
+  starsEl.addEventListener("click", (e)=>{
+    const rect = starsEl.getBoundingClientRect();
+    const pct = (e.clientX-rect.left)/rect.width;
+    rating = Math.max(1, Math.min(5, Math.ceil(pct*5)));
+    render();
+  });
+  $("#modal-submit").addEventListener("click", ()=>{
+    if(!rating){ alert("Please pick a star rating."); return; }
+    reviewSubmit({deliveryId, rating, comment: $("#modal-comment").value});
+    $("#modal-thanks").style.display = "block";
+    renderAll();
+  });
+}
+function showModal(innerHtml){
+  $("#modal-root").innerHTML = `
+    <div style="position:fixed;inset:0;background:rgba(20,18,14,.5);z-index:50;display:flex;align-items:flex-start;justify-content:center;padding:20px" id="modal-overlay">
+      <div class="card modalcard" style="width:100%">
+        ${innerHtml}
+        <div style="margin-top:14px;text-align:right"><button class="btn" id="modal-close">Close</button></div>
+      </div>
+    </div>`;
+  $("#modal-overlay").addEventListener("click", (e)=>{ if(e.target.id==="modal-overlay") closeModal(); });
+  $("#modal-close").addEventListener("click", closeModal);
+}
+function closeModal(){ $("#modal-root").innerHTML = ""; }
+
+function renderAll(){
+  renderOverview(); renderWhatsapp(); renderInventory(); renderOrders(); renderDelivery(); renderFinance(); renderReviews();
+}
+
+$("#wa-send").addEventListener("click", ()=>{
+  const phone = $("#wa-phone").value.trim(), name = $("#wa-name").value.trim(), message = $("#wa-message").value.trim();
+  if(!phone || !message) return;
+  const chat = $("#wa-chat");
+  chat.insertAdjacentHTML("beforeend", `<div class="bubble me">${escapeHtml(message)}</div>`);
+  const result = waSimulate({phone, name, message});
+  chat.insertAdjacentHTML("beforeend", `<div class="bubble">${escapeHtml(result.reply)}</div>`);
+  chat.scrollTop = chat.scrollHeight;
+  $("#wa-message").value = "";
+  renderAll();
+});
+
+renderAll();
+})();
+</script>
+</body>
+</html>
