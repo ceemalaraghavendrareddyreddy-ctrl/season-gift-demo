@@ -9,48 +9,49 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 :root{
-  --bg:#f4f2ec;
+  --bg:#eef2f8;
   --panel:#ffffff;
-  --panel-2:#faf8f3;
-  --ink:#1d1c19;
-  --muted:#716d63;
-  --line:#e5e1d6;
-  --accent:#2f6f5e;
-  --accent-ink:#f4f2ec;
-  --accent-soft:#e1ece7;
-  --ok:#2f6f5e;
-  --ok-soft:#dfece5;
+  --panel-2:#f3f6fb;
+  --ink:#0f2138;
+  --muted:#5b6c85;
+  --line:#d7e0ee;
+  --accent:#123a63;
+  --accent-ink:#ffffff;
+  --accent-soft:#e0e9f6;
+  --ok:#1f7a4d;
+  --ok-soft:#dcf0e4;
   --warn:#a06a1f;
   --warn-soft:#f1e3c9;
-  --bad:#a1403a;
-  --bad-soft:#f2ddd9;
-  --info:#3a5f8a;
-  --info-soft:#dfe6f0;
+  --bad:#b0413a;
+  --bad-soft:#f6dfdd;
+  --info:#2f5fa8;
+  --info-soft:#dfe8f7;
   --radius:12px;
-  --shadow:0 1px 2px rgba(28,26,20,.06), 0 8px 24px -16px rgba(28,26,20,.18);
+  --shadow:0 1px 2px rgba(15,33,56,.08), 0 8px 24px -16px rgba(15,33,56,.22);
   color-scheme:light;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#15171a; --panel:#1d2023; --panel-2:#22262a; --ink:#eeece5; --muted:#a3a099;
-    --line:#33373b; --accent:#5fb69a; --accent-ink:#0f1a17; --accent-soft:#1c2e28;
-    --ok:#5fb69a; --ok-soft:#1c2e28; --warn:#d9a44f; --warn-soft:#332918;
-    --bad:#e2837c; --bad-soft:#33201e; --info:#7fa4d1; --info-soft:#1d2733;
-    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -16px rgba(0,0,0,.5);
+    --bg:#0a1626; --panel:#0f2138; --panel-2:#132a45; --ink:#e8eef7; --muted:#8fa2bd;
+    --line:#254059; --accent:#5b8fd6; --accent-ink:#0a1626; --accent-soft:#16324f;
+    --ok:#4fb886; --ok-soft:#123526; --warn:#d9a44f; --warn-soft:#332918;
+    --bad:#e2837c; --bad-soft:#33201e; --info:#7fa8e0; --info-soft:#132a45;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.6);
   }
 }
 :root[data-theme="dark"]{
-  --bg:#15171a; --panel:#1d2023; --panel-2:#22262a; --ink:#eeece5; --muted:#a3a099;
-  --line:#33373b; --accent:#5fb69a; --accent-ink:#0f1a17; --accent-soft:#1c2e28;
-  --ok:#5fb69a; --ok-soft:#1c2e28; --warn:#d9a44f; --warn-soft:#332918;
-  --bad:#e2837c; --bad-soft:#33201e; --info:#7fa4d1; --info-soft:#1d2733;
-  --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -16px rgba(0,0,0,.5);
+  --bg:#0a1626; --panel:#0f2138; --panel-2:#132a45; --ink:#e8eef7; --muted:#8fa2bd;
+  --line:#254059; --accent:#5b8fd6; --accent-ink:#0a1626; --accent-soft:#16324f;
+  --ok:#4fb886; --ok-soft:#123526; --warn:#d9a44f; --warn-soft:#332918;
+  --bad:#e2837c; --bad-soft:#33201e; --info:#7fa8e0; --info-soft:#132a45;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.6);
 }
 *{box-sizing:border-box}
 html,body{height:auto}
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 "Inter",-apple-system,sans-serif}
 .mono{font-family:"JetBrains Mono",monospace}
 .wrap{max-width:1180px;margin:0 auto;padding:0 20px 60px}
+.app-shell{display:flex;align-items:flex-start;max-width:1180px;margin:0 auto}
 
 .topbar{
   display:flex;align-items:center;gap:14px;padding:22px 20px 16px;
@@ -67,16 +68,31 @@ body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 "Inter",-apple
 .livebadge .dot{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px var(--ok-soft)}
 
 nav.tabs{
-  display:flex;gap:2px;padding:10px 20px 0;max-width:1180px;margin:0 auto;
-  border-bottom:1px solid var(--line);overflow-x:auto;
+  display:flex;flex-direction:column;gap:3px;width:200px;flex:none;
+  padding:18px 12px;border-right:none;border-bottom:none;
+  position:sticky;top:0;align-self:stretch;
+  background:#0b2745;
 }
 nav.tabs button{
-  background:none;border:none;color:var(--muted);padding:9px 14px;border-radius:10px 10px 0 0;
+  background:none;border:none;color:rgba(255,255,255,.72);padding:10px 12px;border-radius:8px;
   cursor:pointer;font:600 13px "Inter";white-space:nowrap;
+  display:flex;align-items:center;gap:9px;text-align:left;width:100%;
 }
-nav.tabs button.active{color:var(--ink);background:var(--panel);border:1px solid var(--line);border-bottom-color:var(--panel);margin-bottom:-1px}
+nav.tabs button:not(.active):hover{background:rgba(255,255,255,.08);color:#fff}
+nav.tabs button.active{color:#fff;background:rgba(255,255,255,.16);border:none;margin-bottom:0;box-shadow:inset 3px 0 0 #fff}
 
-main.wrap{padding-top:22px}
+main.wrap{padding-top:22px;flex:1;min-width:0;max-width:none;margin:0}
+
+@media (max-width:760px){
+  .app-shell{flex-direction:column}
+  nav.tabs{
+    flex-direction:row;width:100%;position:sticky;top:0;z-index:20;background:var(--bg);
+    border-right:none;border-bottom:1px solid var(--line);overflow-x:auto;padding:10px 20px 0;
+    align-self:auto;
+  }
+  nav.tabs button{width:auto;border-radius:10px 10px 0 0}
+  nav.tabs button.active{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-bottom-color:var(--panel);margin-bottom:-1px}
+}
 .tab{display:none}
 .tab.active{display:block;animation:fade .25s ease}
 @keyframes fade{from{opacity:0;transform:translateY(2px)}to{opacity:1;transform:none}}
@@ -122,6 +138,8 @@ button.btn{cursor:pointer;font-weight:600;background:var(--panel)}
 button.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 button.btn.small{padding:5px 9px;font-size:12px}
 button.btn:disabled{opacity:.5;cursor:not-allowed}
+button.btn.dim{color:var(--muted);border-style:dashed}
+button.btn.dim:hover{color:var(--ink);border-color:var(--accent)}
 
 h3.eyebrow{font-size:11.5px;margin:18px 0 8px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
 .muted{color:var(--muted)}
@@ -156,10 +174,8 @@ h3.eyebrow{font-size:11.5px;margin:18px 0 8px;color:var(--muted);text-transform:
 /* ---- v2 polish additions ---- */
 .icon{width:16px;height:16px;flex:none;display:inline-block;vertical-align:-3px}
 .icon svg{width:100%;height:100%;display:block}
-nav.tabs{position:sticky;top:0;z-index:20;background:var(--bg)}
-nav.tabs button{display:inline-flex;align-items:center;gap:7px}
 nav.tabs button .icon{opacity:.75}
-nav.tabs button.active .icon{opacity:1;color:var(--accent)}
+nav.tabs button.active .icon{opacity:1}
 
 h2{display:flex;align-items:center;gap:8px}
 h2 .icon{width:18px;height:18px;color:var(--accent)}
@@ -183,7 +199,10 @@ tbody tr:hover{background:var(--panel-2)}
 .flow2 .fnode{
   flex:1 1 120px;border:1px solid var(--line);border-radius:10px;padding:12px 12px;text-align:left;
   display:flex;flex-direction:column;gap:6px;background:var(--panel-2);min-width:118px;
+  font:inherit;color:inherit;cursor:pointer;transition:border-color .15s ease,background .15s ease,transform .1s ease;
 }
+.flow2 .fnode:hover{border-color:var(--accent);background:var(--accent-soft);transform:translateY(-1px)}
+.flow2 .fnode:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .flow2 .fnode .icon{width:18px;height:18px;color:var(--accent)}
 .flow2 .fnode b{font-size:12.5px;color:var(--ink)}
 .flow2 .fnode span{font-size:11px;color:var(--muted);line-height:1.35}
@@ -272,6 +291,7 @@ tbody tr:hover{background:var(--panel-2)}
 .wa-catalog-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
 .wa-catalog-item{border:1px solid var(--line);border-radius:9px;padding:9px;background:var(--panel-2);text-align:left;cursor:pointer;font:inherit}
 .wa-catalog-item:hover{border-color:var(--accent)}
+.wa-catalog-item .ci-img{width:100%;height:60px;object-fit:cover;border-radius:6px;margin-bottom:6px;background:#fff;display:block}
 .wa-catalog-item .ci-name{font-weight:600;font-size:12.5px;margin-bottom:3px}
 .wa-catalog-item .ci-price{font-size:12px;color:var(--accent)}
 .wa-catalog-item .ci-stock{font-size:10.5px;color:var(--muted);margin-top:2px}
@@ -294,6 +314,16 @@ tbody tr:hover{background:var(--panel-2)}
 
 .minimap{position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:#eef2ea}
 .minimap svg{display:block;width:100%;height:auto}
+.minimap .live-badge{
+  position:absolute;top:8px;left:8px;display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.92);
+  border-radius:999px;padding:3px 9px 3px 7px;font-size:10.5px;font-weight:700;color:var(--bad);letter-spacing:.04em;
+  box-shadow:0 1px 3px rgba(0,0,0,.15);
+}
+.minimap .live-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--bad);animation:livepulse 1.4s infinite}
+@keyframes livepulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+.inv-thumb{width:40px;height:24px;object-fit:cover;border-radius:5px;border:1px solid var(--line);background:#fff;display:block}
+.inv-low-num{color:var(--warn)}
 
 .dslip{
   margin-top:8px;max-width:320px;background:var(--panel);border:1.5px dashed var(--line);border-radius:8px;
@@ -321,6 +351,7 @@ tbody tr:hover{background:var(--panel-2)}
   <button class="btn reset" id="reset-demo" data-icon="reset">Reset demo</button>
 </div>
 
+<div class="app-shell">
 <nav class="tabs" id="tabs">
   <button data-tab="overview" class="active" data-icon="grid">Overview</button>
   <button data-tab="whatsapp" data-icon="chat">WhatsApp AI</button>
@@ -387,8 +418,8 @@ tbody tr:hover{background:var(--panel-2)}
   <section id="tab-inventory" class="tab">
     <div class="card section">
       <h2 data-icon="box">Products &amp; stock</h2>
-      <p class="desc">Shared with WhatsApp AI and (in production) the website — update a price once, it applies everywhere.</p>
-      <div class="tablewrap"><table id="inv-products"><thead><tr><th>Product</th><th>Location</th><th>Price (Rs)</th><th>Stock</th><th>Reorder at</th><th></th></tr></thead><tbody></tbody></table></div>
+      <p class="desc">Shared with WhatsApp AI and (in production) the website — update a price once, it applies everywhere. Current stock = Warehouse stock + Received − Sold.</p>
+      <div class="tablewrap"><table id="inv-products"><thead><tr><th></th><th>Product</th><th>Location</th><th>Price (Rs)</th><th>Warehouse stock</th><th>Received</th><th>Sold</th><th>Current stock</th><th>Reorder at</th><th>Restock</th></tr></thead><tbody></tbody></table></div>
     </div>
     <div class="grid cols-2">
       <div class="card">
@@ -476,6 +507,7 @@ tbody tr:hover{background:var(--panel-2)}
   </section>
 
 </main>
+</div>
 
 <div id="modal-root"></div>
 
@@ -497,10 +529,16 @@ const db = {
   ],
   customers: [],
   products: [
-    {id:"prd-0001",name:"Gift Hamper — Classic",price:950,stock:24,location:"Main Store",reorderThreshold:8},
-    {id:"prd-0002",name:"Chocolate Box — Deluxe",price:480,stock:6,location:"Main Store",reorderThreshold:10},
-    {id:"prd-0003",name:"Flower Bouquet — Rose Mix",price:650,stock:15,location:"Main Store",reorderThreshold:5},
-    {id:"prd-0004",name:"Personalised Mug",price:320,stock:40,location:"Warehouse",reorderThreshold:12},
+    {id:"prd-0001",name:"Gift Hamper — Classic",price:950,warehouseStock:30,received:0,sold:6,location:"Main Store",reorderThreshold:8,type:"hamper",hex:"#C9A876"},
+    {id:"prd-0002",name:"Deluxe Celebration Hamper",price:1650,warehouseStock:18,received:0,sold:3,location:"Main Store",reorderThreshold:6,type:"hamper",hex:"#B08A5A"},
+    {id:"prd-0003",name:"Chocolate Box — Deluxe",price:480,warehouseStock:16,received:0,sold:10,location:"Main Store",reorderThreshold:10,type:"chocolate",hex:"#B0553A"},
+    {id:"prd-0004",name:"Truffle Tin — 12pc",price:320,warehouseStock:25,received:0,sold:4,location:"Main Store",reorderThreshold:8,type:"chocolate",hex:"#7A3E2A"},
+    {id:"prd-0005",name:"Flower Bouquet — Rose Mix",price:650,warehouseStock:20,received:0,sold:5,location:"Main Store",reorderThreshold:5,type:"bouquet",hex:"#B0553A"},
+    {id:"prd-0006",name:"Tropical Bloom Bouquet",price:890,warehouseStock:15,received:0,sold:2,location:"Main Store",reorderThreshold:5,type:"bouquet",hex:"#2F5D4C"},
+    {id:"prd-0007",name:"Personalised Mug",price:320,warehouseStock:45,received:0,sold:5,location:"Warehouse",reorderThreshold:12,type:"mug",hex:"#2F5D4C"},
+    {id:"prd-0008",name:"Scented Candle Duo",price:540,warehouseStock:22,received:0,sold:3,location:"Warehouse",reorderThreshold:8,type:"candle",hex:"#C9A876"},
+    {id:"prd-0009",name:"Teddy Bear Gift Set",price:720,warehouseStock:16,received:0,sold:2,location:"Warehouse",reorderThreshold:6,type:"teddy",hex:"#C98A3E"},
+    {id:"prd-0010",name:"Birthday Cake — Chocolate",price:850,warehouseStock:10,received:0,sold:1,location:"Main Store",reorderThreshold:4,type:"cake",hex:"#6B4226"},
   ],
   orders: [],
   deliveries: [],
@@ -514,6 +552,64 @@ const ledgerBook = {
     return {ledgerId:`LB-${order.id}`, orderId: order.id, amount: order.total, status:"pending", issuedAt: nowISO()};
   }
 };
+
+// ---------------- Product illustrations (flat SVG, no external images/licensing) ----------------
+function svgBg(){ return '<rect width="260" height="150" fill="#EFEAE0"/>'; }
+function svgHamper(hex){
+  return '<svg xmlns="http://www.w3.org/2000/svg" width="260" height="150" viewBox="0 0 260 150">'+svgBg()+
+    '<path d="M55 80 L205 80 L190 135 L70 135 Z" fill="'+hex+'"/>'+
+    '<path d="M55 80 L205 80 L200 92 L60 92 Z" fill="'+hex+'" opacity="0.6"/>'+
+    '<path d="M95 80 Q95 40 130 40 Q165 40 165 80" stroke="#8a6a2c" stroke-width="6" fill="none"/>'+
+    '<circle cx="130" cy="60" r="9" fill="#B0553A"/><circle cx="112" cy="70" r="7" fill="#C98A3E"/><circle cx="150" cy="70" r="7" fill="#2F5D4C"/>'+
+    '<rect x="60" y="95" width="140" height="4" fill="#fff" opacity="0.5"/><rect x="63" y="110" width="132" height="4" fill="#fff" opacity="0.4"/></svg>';
+}
+function svgChocolate(hex){
+  return '<svg xmlns="http://www.w3.org/2000/svg" width="260" height="150" viewBox="0 0 260 150">'+svgBg()+
+    '<rect x="55" y="45" width="150" height="80" rx="6" fill="'+hex+'"/>'+
+    '<rect x="55" y="45" width="150" height="18" rx="6" fill="'+hex+'" opacity="0.6"/>'+
+    '<rect x="122" y="45" width="16" height="80" fill="#fff" opacity="0.85"/><rect x="55" y="78" width="150" height="14" fill="#fff" opacity="0.85"/>'+
+    '<circle cx="130" cy="85" r="12" fill="#B0553A"/></svg>';
+}
+function svgBouquet(hex){
+  return '<svg xmlns="http://www.w3.org/2000/svg" width="260" height="150" viewBox="0 0 260 150">'+svgBg()+
+    '<path d="M120 130 L130 70 L140 130 Z" fill="#3F6B4E"/>'+
+    '<circle cx="105" cy="60" r="16" fill="'+hex+'"/><circle cx="130" cy="45" r="18" fill="'+hex+'"/><circle cx="155" cy="60" r="16" fill="'+hex+'"/>'+
+    '<circle cx="118" cy="52" r="7" fill="#F1EEE6" opacity="0.8"/><circle cx="142" cy="52" r="7" fill="#F1EEE6" opacity="0.8"/>'+
+    '<path d="M100 130 L160 130 L150 108 L110 108 Z" fill="#C9A876"/></svg>';
+}
+function svgMug(hex){
+  return '<svg xmlns="http://www.w3.org/2000/svg" width="260" height="150" viewBox="0 0 260 150">'+svgBg()+
+    '<rect x="85" y="45" width="80" height="80" rx="8" fill="'+hex+'"/>'+
+    '<path d="M165 60 Q195 60 195 85 Q195 110 165 110" stroke="'+hex+'" stroke-width="10" fill="none"/>'+
+    '<rect x="95" y="55" width="60" height="14" rx="3" fill="#fff" opacity="0.8"/></svg>';
+}
+function svgCandle(hex){
+  return '<svg xmlns="http://www.w3.org/2000/svg" width="260" height="150" viewBox="0 0 260 150">'+svgBg()+
+    '<rect x="95" y="55" width="30" height="75" rx="4" fill="'+hex+'"/><rect x="135" y="70" width="30" height="60" rx="4" fill="'+hex+'" opacity="0.75"/>'+
+    '<path d="M110 55 Q113 42 110 35 Q107 42 110 55" fill="#C98A3E"/><path d="M150 70 Q153 57 150 50 Q147 57 150 70" fill="#C98A3E"/></svg>';
+}
+function svgTeddy(hex){
+  return '<svg xmlns="http://www.w3.org/2000/svg" width="260" height="150" viewBox="0 0 260 150">'+svgBg()+
+    '<circle cx="130" cy="105" r="36" fill="'+hex+'"/>'+
+    '<circle cx="130" cy="55" r="26" fill="'+hex+'"/>'+
+    '<circle cx="106" cy="30" r="11" fill="'+hex+'"/><circle cx="154" cy="30" r="11" fill="'+hex+'"/>'+
+    '<circle cx="120" cy="52" r="3" fill="#2b2b2b"/><circle cx="140" cy="52" r="3" fill="#2b2b2b"/>'+
+    '<ellipse cx="130" cy="62" rx="8" ry="6" fill="#8a6a2c"/></svg>';
+}
+function svgCake(hex){
+  return '<svg xmlns="http://www.w3.org/2000/svg" width="260" height="150" viewBox="0 0 260 150">'+svgBg()+
+    '<rect x="70" y="90" width="120" height="38" rx="6" fill="'+hex+'"/>'+
+    '<rect x="90" y="58" width="80" height="34" rx="6" fill="'+hex+'" opacity="0.85"/>'+
+    '<rect x="127" y="36" width="6" height="24" fill="#C98A3E"/>'+
+    '<circle cx="130" cy="30" r="5" fill="#E8A23D"/>'+
+    '<circle cx="100" cy="105" r="4" fill="#fff" opacity="0.7"/><circle cx="160" cy="105" r="4" fill="#fff" opacity="0.7"/></svg>';
+}
+const PRODUCT_DRAW = { hamper:svgHamper, chocolate:svgChocolate, bouquet:svgBouquet, mug:svgMug, candle:svgCandle, teddy:svgTeddy, cake:svgCake };
+function imgFor(type, hex){ return 'data:image/svg+xml;utf8,'+encodeURIComponent(PRODUCT_DRAW[type](hex)); }
+db.products.forEach(p=>{ p.img = imgFor(p.type, p.hex); });
+
+// ---------------- Inventory model: Current Stock = Warehouse Stock − Sold ----------------
+function currentStock(p){ return Math.max(0, p.warehouseStock + p.received - p.sold); }
 
 // ---------------- Core API ----------------
 const core = {
@@ -538,8 +634,8 @@ const core = {
     order.status = "confirmed";
     for(const it of order.items){
       const p = db.products.find(p=>p.id===it.productId);
-      if(p){ const before=p.stock; p.stock=Math.max(0,p.stock-it.qty);
-        db.stockAudit.push({id:nextId("aud"), productId:p.id, change:-it.qty, before, after:p.stock, reason:`order ${order.id} confirmed`, at:nowISO()});
+      if(p){ const before=currentStock(p); p.sold += it.qty;
+        db.stockAudit.push({id:nextId("aud"), productId:p.id, change:-it.qty, before, after:currentStock(p), reason:`order ${order.id} confirmed`, at:nowISO()});
       }
     }
     return order;
@@ -592,8 +688,8 @@ function waSimulate({phone, name, message}){
 // ---------------- Inventory module ----------------
 function invRestock(productId, qty){
   const p = db.products.find(p=>p.id===productId); if(!p) return;
-  const before = p.stock; p.stock += qty;
-  db.stockAudit.push({id:nextId("man"), productId:p.id, change:qty, before, after:p.stock, reason:"manual restock", at:nowISO()});
+  const before = currentStock(p); p.received += qty;
+  db.stockAudit.push({id:nextId("man"), productId:p.id, change:qty, before, after:currentStock(p), reason:"stock received into warehouse", at:nowISO()});
   return p;
 }
 
@@ -687,7 +783,7 @@ function renderOverview(){
     ["Orders total", orders.length, "receipt", "accent"],
     ["Pending orders", orders.filter(o=>o.status==="pending").length, "alert", "warn"],
     ["Confirmed revenue (Rs)", orders.filter(o=>o.status==="confirmed"||o.status==="fulfilled").reduce((s,o)=>s+o.total,0), "wallet", "ok"],
-    ["Low-stock products", products.filter(p=>p.stock<=p.reorderThreshold).length, "box", "warn"],
+    ["Low-stock products", products.filter(p=>currentStock(p)<=p.reorderThreshold).length, "box", "warn"],
     ["Active deliveries", deliveries.filter(d=>!["delivered","failed"].includes(d.status)).length, "truck", "info"],
     ["Reviews collected", db.reviews.length, "star", "ok"],
     ["Invoices unpaid", db.invoices.filter(i=>i.status==="pending").length, "wallet", "bad"],
@@ -702,13 +798,14 @@ function renderOverview(){
     </div>`).join("");
 
   $("#flow").innerHTML =
-    `<div class="fnode">${icon("chat")}<b>WhatsApp / Website / In-store</b><span>Each channel writes a core Order — never a separate table</span></div>`
+    `<button class="fnode" data-flowtab="whatsapp">${icon("chat")}<b>WhatsApp / Website / In-store</b><span>Each channel writes a core Order — never a separate table</span></button>`
     + `<div class="farrow">${icon("arrow")}</div>`
-    + `<div class="fnode">${icon("receipt")}<b>Core Order</b><span>One shared pipeline for every source</span></div>`
+    + `<button class="fnode" data-flowtab="orders">${icon("receipt")}<b>Core Order</b><span>One shared pipeline for every source</span></button>`
     + `<div class="farrow">${icon("arrow")}</div>`
-    + `<div class="fnode">${icon("wallet")}<b>Finance</b><span>Invoices via Ledger Book, one source of truth</span></div>`
+    + `<button class="fnode" data-flowtab="finance">${icon("wallet")}<b>Finance</b><span>Invoices via Ledger Book, one source of truth</span></button>`
     + `<div class="farrow">${icon("arrow")}</div>`
-    + `<div class="fnode">${icon("truck")}<b>Delivery</b><span>Tracked to the door, reviewed after</span></div>`;
+    + `<button class="fnode" data-flowtab="delivery">${icon("truck")}<b>Delivery</b><span>Tracked to the door, reviewed after</span></button>`;
+  $$("#flow [data-flowtab]").forEach(btn=>btn.addEventListener("click", ()=>goTab(btn.dataset.flowtab)));
 
   const hasPending = orders.some(o=>o.status==="pending");
   const hasConfirmedNoDelivery = orders.some(o=>o.status==="confirmed" && !deliveries.some(d=>d.orderId===o.id));
@@ -719,7 +816,7 @@ function renderOverview(){
 
   const steps = [
     {n:1, label:"Send a WhatsApp order", done: orders.length>0, enabled: true, tab:"whatsapp"},
-    {n:2, label:"Confirm + invoice", done: orders.some(o=>o.status==="confirmed"), enabled: hasPending, tab:"orders"},
+    {n:2, label:"Confirm + invoice", done: db.invoices.length>0, enabled: hasPending, tab:"orders"},
     {n:3, label:"Create delivery", done: deliveries.length>0, enabled: hasConfirmedNoDelivery, tab:"orders"},
     {n:4, label:"Assign driver + ping GPS", done: deliveries.some(d=>d.location), enabled: hasUnassigned, tab:"delivery"},
     {n:5, label:"Mark delivered", done: hasDelivered, enabled: hasAssigned, tab:"delivery"},
@@ -733,7 +830,7 @@ function renderOverview(){
     return `<div class="step ${cls}">
       <div class="connector"></div>
       <div class="num">${num}</div>
-      <button class="btn ${isNext?'primary':''}" data-gp="${s.n}" ${s.enabled?'':'disabled'}>${s.label}</button>
+      <button class="btn ${isNext?'primary':''} ${s.enabled?'':'dim'}" data-gp="${s.n}">${s.label}</button>
     </div>`;
   }).join("");
   $$("#golden-path [data-gp]").forEach(btn=>btn.addEventListener("click", ()=>runGoldenStep(Number(btn.dataset.gp))));
@@ -752,6 +849,8 @@ function gpLog(iconName, title, detailHtml, tabLink){
   while(feed.children.length > 6) feed.removeChild(feed.lastChild);
 }
 
+function gpBlocked(msg){ gpLog("alert", "Nothing to do yet", msg, null); }
+
 function runGoldenStep(n){
   const orders = db.orders, deliveries = db.deliveries;
   if(n===1){
@@ -761,12 +860,12 @@ function runGoldenStep(n){
   }
   if(n===2){
     const order = orders.find(o=>o.status==="pending");
-    if(!order) return;
+    if(!order){ gpBlocked("No pending order right now — run step 1 (send a WhatsApp order) first, or use the WhatsApp AI tab to create one."); return; }
     const {invoice} = finConfirmAndInvoice(order.id);
     gpLog("wallet", "Order confirmed + invoiced", `Order <span class="mono">${order.id}</span> confirmed — stock deducted, invoice <span class="mono">${invoice.ledgerId}</span> issued for Rs ${invoice.amount} via Ledger Book.`, "finance");
   } else if(n===3){
     const order = orders.find(o=>o.status==="confirmed" && !deliveries.some(d=>d.orderId===o.id));
-    if(!order) return;
+    if(!order){ gpBlocked("No confirmed order is waiting on a delivery — run step 2 (confirm + invoice) first."); return; }
     const delivery = core.createDelivery({orderId: order.id});
     const customer = db.customers.find(c=>c.id===order.customerId);
     const feed = $("#gp-feed");
@@ -783,7 +882,7 @@ function runGoldenStep(n){
     while(feed.children.length > 6) feed.removeChild(feed.lastChild);
   } else if(n===4){
     const delivery = deliveries.find(d=>d.status==="unassigned");
-    if(!delivery) return;
+    if(!delivery){ gpBlocked("No unassigned delivery right now — run step 3 (create delivery) first."); return; }
     const drivers = core.listUsers("driver");
     const driver = drivers[driverRotation % drivers.length]; driverRotation++;
     core.assignDriver(delivery.id, driver.id);
@@ -792,12 +891,12 @@ function runGoldenStep(n){
     gpLog("pin", "Driver assigned + GPS ping received", `${driver.name} assigned to <span class="mono">${delivery.id}</span> — live location ${lat.toFixed(4)}, ${lng.toFixed(4)}.`, "delivery");
   } else if(n===5){
     const delivery = deliveries.find(d=>["assigned","picked_up","en_route"].includes(d.status));
-    if(!delivery) return;
+    if(!delivery){ gpBlocked("No delivery is currently out for drop-off — run step 4 (assign driver) first."); return; }
     core.updateDeliveryStatus(delivery.id, "delivered");
     gpLog("check", "Marked as delivered", `Delivery <span class="mono">${delivery.id}</span> is now delivered — proof-of-delivery was auto-captured and the order flipped to <b>fulfilled</b>, visible immediately in Orders and on the customer's tracking page.`, "orders");
   } else if(n===6){
     const delivery = deliveries.find(d=>d.status==="delivered");
-    if(!delivery) return;
+    if(!delivery){ gpBlocked("No delivered order yet — run step 5 (mark delivered) first."); return; }
     const feed = $("#gp-feed");
     const card = document.createElement("div");
     card.className = "feedcard";
@@ -819,20 +918,31 @@ function renderWhatsapp(){
 }
 
 function renderInventory(){
-  $("#inv-products tbody").innerHTML = db.products.map(p=>`<tr>
+  $("#inv-products tbody").innerHTML = db.products.map(p=>{
+    const stock = currentStock(p);
+    const low = stock<=p.reorderThreshold;
+    return `<tr>
+    <td><img src="${p.img}" class="inv-thumb" alt=""></td>
     <td>${p.name}</td><td>${p.location}</td>
-    <td><input type="number" value="${p.price}" data-price="${p.id}" style="width:80px"></td>
-    <td>${p.stock}</td><td>${p.reorderThreshold}</td>
-    <td><button class="btn small" data-restock="${p.id}">+10 stock</button></td>
-  </tr>`).join("");
+    <td><input type="number" value="${p.price}" data-price="${p.id}" style="width:75px"></td>
+    <td>${p.warehouseStock}</td>
+    <td>${p.received>0?'+':''}${p.received}</td>
+    <td>${p.sold}</td>
+    <td><b class="${low?'inv-low-num':''}">${stock}</b></td>
+    <td>${p.reorderThreshold}</td>
+    <td><input type="number" value="10" min="1" data-restock-qty="${p.id}" style="width:55px"> <button class="btn small" data-restock="${p.id}">Restock</button></td>
+  </tr>`;
+  }).join("");
   $$("#inv-products [data-price]").forEach(inp=>inp.addEventListener("change", e=>{
     core.updateProductPrice(e.target.dataset.price, Number(e.target.value)); renderAll();
   }));
   $$("#inv-products [data-restock]").forEach(btn=>btn.addEventListener("click", e=>{
-    invRestock(e.target.dataset.restock, 10); renderAll();
+    const id = e.target.dataset.restock;
+    const qtyInput = $(`[data-restock-qty="${id}"]`);
+    invRestock(id, Math.max(1, Number(qtyInput.value)||10)); renderAll();
   }));
-  const low = db.products.filter(p=>p.stock<=p.reorderThreshold);
-  $("#inv-low").innerHTML = low.length ? low.map(p=>`<span class="badge unassigned">${p.name}: ${p.stock} left</span>`).join(" ") : "No low-stock products.";
+  const low = db.products.filter(p=>currentStock(p)<=p.reorderThreshold);
+  $("#inv-low").innerHTML = low.length ? low.map(p=>`<span class="badge unassigned">${p.name}: ${currentStock(p)} left</span>`).join(" ") : "No low-stock products.";
   $("#inv-audit tbody").innerHTML = db.stockAudit.slice().reverse().slice(0,15).map(a=>{
     const p = db.products.find(p=>p.id===a.productId);
     return `<tr><td>${new Date(a.at).toLocaleTimeString()}</td><td>${p?p.name:a.productId}</td><td>${a.change>0?"+":""}${a.change}</td><td class="muted">${a.reason}</td></tr>`;
@@ -992,11 +1102,13 @@ function buildMiniMap(lat, lng, pulsing){
     <path d="M0 40 L300 65 M0 120 L300 100 M40 0 L60 190 M230 0 L210 190" stroke="var(--line)" stroke-width="2" fill="none"/>
     ${landmarks}
     ${driverMark}
-  </svg></div>`;
+  </svg>${pulsing?`<div class="live-badge"><span class="dot"></span>LIVE</div>`:""}</div>`;
 }
 
 // ---------------- Modals: customer tracking + review form ----------------
+let openTrackingId = null;
 function openTracking(deliveryId){
+  openTrackingId = deliveryId;
   const d = core.getDelivery(deliveryId); if(!d) return;
   const order = core.getOrder(d.orderId);
   const driver = d.driverId ? driverName(d.driverId) : "Not yet assigned";
@@ -1044,7 +1156,7 @@ function openReview(deliveryId){
 }
 function showModal(innerHtml){
   $("#modal-root").innerHTML = `
-    <div style="position:fixed;inset:0;background:rgba(20,18,14,.5);z-index:50;display:flex;align-items:flex-start;justify-content:center;padding:20px" id="modal-overlay">
+    <div style="position:fixed;inset:0;background:rgba(20,18,14,.5);z-index:50;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto" id="modal-overlay">
       <div class="card modalcard" style="width:100%">
         ${innerHtml}
         <div style="margin-top:14px;text-align:right"><button class="btn" id="modal-close">Close</button></div>
@@ -1053,7 +1165,7 @@ function showModal(innerHtml){
   $("#modal-overlay").addEventListener("click", (e)=>{ if(e.target.id==="modal-overlay") closeModal(); });
   $("#modal-close").addEventListener("click", closeModal);
 }
-function closeModal(){ $("#modal-root").innerHTML = ""; }
+function closeModal(){ $("#modal-root").innerHTML = ""; openTrackingId = null; }
 
 // ---------------- Driver App (mobile mockup) ----------------
 function renderDriverApp(){
@@ -1253,12 +1365,15 @@ function waBoot(){
 /* Catalogue modal — same core Product entity as the Inventory tab, browsed WhatsApp-native-shop style */
 function openWaCatalog(){
   const products = core.listProducts();
-  const grid = products.map(p=>`
-    <button class="wa-catalog-item" data-prod="${p.id}">
+  const grid = products.map(p=>{
+    const stock = currentStock(p);
+    return `<button class="wa-catalog-item" data-prod="${p.id}">
+      <img src="${p.img}" class="ci-img" alt="">
       <div class="ci-name">${p.name}</div>
       <div class="ci-price">Rs ${p.price}</div>
-      <div class="ci-stock">${p.stock>0 ? p.stock+" in stock" : "Out of stock"}</div>
-    </button>`).join("");
+      <div class="ci-stock">${stock>0 ? stock+" in stock" : "Out of stock"}</div>
+    </button>`;
+  }).join("");
   showModal(`
     <h2 data-icon="chat">Season Gift catalogue</h2>
     <p class="desc">Same core Product entity the Inventory and Orders tabs read — tap one to ask about it in the chat.</p>
@@ -1272,6 +1387,22 @@ function openWaCatalog(){
   }));
 }
 $("#wa-shop-btn").addEventListener("click", openWaCatalog);
+
+// ---------------- Live GPS simulation ----------------
+// Nudges every in-transit delivery's location every few seconds, like a real
+// phone's background GPS ping — no manual "Ping GPS" click required to see movement.
+setInterval(()=>{
+  const active = db.deliveries.filter(d=>["assigned","picked_up","en_route"].includes(d.status) && d.driverId);
+  if(active.length===0) return;
+  active.forEach(d=>{
+    const base = d.location || {lat:-20.1609, lng:57.5012};
+    const lat = base.lat + (Math.random()-0.5)*0.006;
+    const lng = base.lng + (Math.random()-0.5)*0.006;
+    core.pingLocation(d.id, lat, lng);
+  });
+  renderDelivery(); renderDriverApp();
+  if(openTrackingId && active.some(d=>d.id===openTrackingId)) openTracking(openTrackingId);
+}, 3500);
 
 waBoot();
 renderAll();
