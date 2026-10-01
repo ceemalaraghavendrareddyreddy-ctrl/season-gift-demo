@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Season Gift — Driver App</title>
+<meta name="description" content="Driver delivery app for Season Gift — pickup, en route, delivered, with GPS pings and proof-of-delivery, sharing the same core as the Admin dashboard." />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="style.css">
+<script src="core.js"></script>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="mark">SG</div>
+  <div>
+    <h1>Driver App</h1>
+    <div class="tag">What a driver sees on their company phone</div>
+  </div>
+  <div class="spacer"></div>
+  <nav class="applinks">
+    <a href="admin.html">Admin</a>
+    <a href="whatsapp.html">WhatsApp</a>
+    <a href="driver.html" class="current">Driver App</a>
+  </nav>
+  <div class="livebadge"><span class="dot"></span> Demo data, shared via this browser</div>
+</div>
+
+<main class="wrap" style="padding-top:22px">
+  <div class="card">
+    <h2 data-icon="phone">Today's deliveries</h2>
+    <p class="desc">Company-provided devices, so location permission is always-on with no personal-device friction. Turn-by-turn handoff goes to Google Maps / Waze, not a built-in router.</p>
+    <div class="driverpane">
+      <div>
+        <div class="row" style="margin-bottom:12px">
+          <select id="driver-select"></select>
+        </div>
+        <div class="phone">
+          <div class="pnotch"></div>
+          <div class="pscreen" id="phone-screen"></div>
+        </div>
+      </div>
+      <div>
+        <h3 class="eyebrow">Why this matters</h3>
+        <p class="desc" style="margin-bottom:10px">This same screen is the entire fleet-tracking system — the driver's phone <i>is</i> the tracker. No separate hardware, no telematics vendor contract. Background GPS pings every 30–60s feed straight into the Admin dashboard's Delivery tab and the customer's tracking link.</p>
+        <h3 class="eyebrow">Try it</h3>
+        <p class="desc">Pick a driver above, then step through their deliveries: Picked up → En route → Delivered. Open the <a href="admin.html" target="_blank" style="color:var(--accent)">Admin dashboard</a> in another tab to watch it update live on the Delivery &amp; Orders tabs.</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+(function(){
+"use strict";
+const { core } = SG;
+function db(){ return SG.db; }
+const $ = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
+const { icon, applyIcons, productNames } = SG;
+
+applyIcons();
+
+function renderDriverApp(){
+  const drivers = core.listUsers("driver");
+  const sel = $("#driver-select");
+  const prevValue = sel.value;
+  sel.innerHTML = drivers.map(d=>`<option value="${d.id}">${d.name}</option>`).join("");
+  if(prevValue && drivers.some(d=>d.id===prevValue)) sel.value = prevValue;
+  const driverId = sel.value || (drivers[0] && drivers[0].id);
+  const driver = drivers.find(d=>d.id===driverId);
+
+  const myDeliveries = db().deliveries.filter(d=>d.driverId===driverId && d.status!=="failed");
+  const active = myDeliveries.filter(d=>d.status!=="delivered");
+  const completed = myDeliveries.filter(d=>d.status==="delivered").slice().reverse().slice(0,4);
+  const screen = $("#phone-screen");
+  if(!driver){ screen.innerHTML = `<p class="muted" style="font-size:12px">No drivers configured.</p>`; return; }
+
+  const nextAction = {unassigned:"picked_up", assigned:"picked_up", picked_up:"en_route", en_route:"delivered"};
+  const nextLabel = {picked_up:"Mark picked up", en_route:"Start en route", delivered:"Mark delivered"};
+  const gpsLine = d => d.location
+    ? `<div class="muted" style="font-size:11px;margin-top:6px">${icon("pin")} ${d.location.lat.toFixed(4)}, ${d.location.lng.toFixed(4)} · ${new Date(d.location.at).toLocaleTimeString()}</div>`
+    : `<div class="muted" style="font-size:11px;margin-top:6px">${icon("pin")} No GPS ping yet</div>`;
+
+  screen.innerHTML = `
+    <div class="phead"><b>${driver.name}</b><span class="pdot" title="Online"></span></div>
+    ${active.length===0
+      ? `<p class="muted" style="font-size:12px">No active deliveries for ${driver.name} right now — send a WhatsApp order and confirm it from the Admin dashboard to see one appear here.</p>`
+      : active.map(d=>{
+          const order = core.getOrder(d.orderId);
+          const next = nextAction[d.status];
+          return `<div class="dcard">
+            <div class="dtop"><span class="mono">${d.id}</span><span class="badge ${d.status}">${d.status.replace("_"," ")}</span></div>
+            <div class="daddr">Order ${order?order.id:d.orderId} · ${order?productNames(order.items):""}</div>
+            <div class="dactions">
+              ${next ? `<button class="btn small primary" data-dnext="${d.id}" data-next="${next}">${nextLabel[next]}</button>` : ""}
+              <button class="btn small" data-dping="${d.id}">${icon("pin")} Ping GPS</button>
+            </div>
+            ${gpsLine(d)}
+          </div>`;
+        }).join("")
+    }
+    ${completed.length ? `<h3 class="eyebrow" style="margin:14px 0 8px">Completed today</h3>` + completed.map(d=>{
+      const order = core.getOrder(d.orderId);
+      return `<div class="dcard">
+        <div class="dtop"><span class="mono">${d.id}</span><span class="badge fulfilled">order fulfilled</span></div>
+        <div class="daddr">Order ${order?order.id:d.orderId} · ${order?productNames(order.items):""}</div>
+        <div class="muted" style="font-size:11px;margin-top:4px">${icon("check")} Proof auto-captured ${d.proof?new Date(d.proof.at).toLocaleTimeString():""}</div>
+      </div>`;
+    }).join("") : ""}
+  `;
+  $$("#phone-screen [data-dnext]").forEach(btn=>btn.addEventListener("click", e=>{
+    core.updateDeliveryStatus(e.target.closest("[data-dnext]").dataset.dnext, e.target.closest("[data-dnext]").dataset.next);
+    renderDriverApp();
+  }));
+  $$("#phone-screen [data-dping]").forEach(btn=>btn.addEventListener("click", e=>{
+    const id = e.target.closest("[data-dping]").dataset.dping;
+    const lat=-20.1609+(Math.random()-0.5)*0.05, lng=57.5012+(Math.random()-0.5)*0.05;
+    core.pingLocation(id, lat, lng);
+    renderDriverApp();
+  }));
+}
+$("#driver-select").addEventListener("change", renderDriverApp);
+
+// Live GPS simulation — nudges every in-transit delivery's location every
+// few seconds, like a real phone's background GPS ping.
+setInterval(()=>{
+  const active = db().deliveries.filter(d=>["assigned","picked_up","en_route"].includes(d.status) && d.driverId);
+  if(active.length===0) return;
+  active.forEach(d=>{
+    const base = d.location || {lat:-20.1609, lng:57.5012};
+    const lat = base.lat + (Math.random()-0.5)*0.006;
+    const lng = base.lng + (Math.random()-0.5)*0.006;
+    core.pingLocation(d.id, lat, lng);
+  });
+  renderDriverApp();
+}, 3500);
+
+window.addEventListener("sg:db-changed", renderDriverApp);
+
+renderDriverApp();
+})();
+</script>
+</body>
+</html>

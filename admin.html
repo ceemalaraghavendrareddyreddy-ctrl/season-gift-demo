@@ -1,0 +1,626 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Season Gift — Admin Dashboard</title>
+<meta name="description" content="Admin dashboard for the Season Gift platform — overview, inventory, orders, delivery dispatch, finance and QR reviews, all sharing one core with the WhatsApp and Driver apps." />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="core.js"></script>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="mark">SG</div>
+  <div>
+    <h1>Admin Dashboard</h1>
+    <div class="tag">Reads &amp; writes the same core data as the WhatsApp and Driver apps</div>
+  </div>
+  <div class="spacer"></div>
+  <nav class="applinks">
+    <a href="admin.html" class="current">Admin</a>
+    <a href="whatsapp.html">WhatsApp</a>
+    <a href="driver.html">Driver App</a>
+  </nav>
+  <div class="livebadge"><span class="dot"></span> Demo data, shared via this browser</div>
+  <button class="btn reset" id="reset-demo" data-icon="reset">Reset demo</button>
+</div>
+
+<div class="app-shell">
+<nav class="tabs" id="tabs">
+  <button data-tab="overview" class="active" data-icon="grid">Overview</button>
+  <button data-tab="inventory" data-icon="box">Inventory</button>
+  <button data-tab="orders" data-icon="receipt">Orders</button>
+  <button data-tab="delivery" data-icon="truck">Delivery &amp; Drivers</button>
+  <button data-tab="finance" data-icon="wallet">Finance</button>
+  <button data-tab="reviews" data-icon="star">QR Reviews</button>
+</nav>
+
+<main class="wrap">
+
+  <section id="tab-overview" class="tab active">
+    <div class="grid cols-4 section" id="overview-stats"></div>
+    <div class="card section">
+      <h2 data-icon="link">One core, three apps</h2>
+      <p class="desc">This Admin dashboard, the WhatsApp app and the Driver app are three separately deployed pages — but they all read and write the same core entities (Customer, Product, Order, Delivery, Invoice) through this browser's storage. Try the golden path below and watch one order ripple across every module.</p>
+      <div class="flow2" id="flow"></div>
+    </div>
+    <div class="card">
+      <h2 data-icon="play">Try the golden path</h2>
+      <p class="desc" style="margin-bottom:10px">Click through in order — each step runs for real against the shared demo data.</p>
+      <div class="stepper" id="golden-path"></div>
+      <div id="gp-feed"></div>
+    </div>
+  </section>
+
+  <section id="tab-inventory" class="tab">
+    <div class="card section">
+      <h2 data-icon="box">Products &amp; stock</h2>
+      <p class="desc">Shared with the WhatsApp app and (in production) the website — update a price once, it applies everywhere. Current stock = Warehouse stock + Received − Sold.</p>
+      <div class="tablewrap"><table id="inv-products"><thead><tr><th></th><th>Product</th><th>Location</th><th>Price (Rs)</th><th>Warehouse stock</th><th>Received</th><th>Sold</th><th>Current stock</th><th>Reorder at</th><th>Restock</th></tr></thead><tbody></tbody></table></div>
+    </div>
+    <div class="grid cols-2">
+      <div class="card">
+        <h2 data-icon="alert">Low-stock alerts</h2>
+        <div id="inv-low" class="pill-list muted">—</div>
+      </div>
+      <div class="card">
+        <h2 data-icon="log">Stock audit log</h2>
+        <div class="tablewrap"><table id="inv-audit"><thead><tr><th>When</th><th>Product</th><th>Δ</th><th>Reason</th></tr></thead><tbody></tbody></table></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-orders" class="tab">
+    <div class="card section">
+      <h2 data-icon="box">New order — walk-in / manual entry</h2>
+      <p class="desc">For a customer standing at the counter, or an order phoned in, taken on Facebook/Instagram, or from any channel without its own webhook yet. Writes into the exact same core Order pipeline as WhatsApp.</p>
+      <div class="row" style="margin-bottom:8px">
+        <select id="new-ord-source">
+          <option value="in-store">In-store (walk-in)</option>
+          <option value="facebook">Facebook</option>
+          <option value="instagram">Instagram</option>
+          <option value="website">Website</option>
+          <option value="phone">Phone order</option>
+        </select>
+        <input id="new-ord-customer" placeholder="Customer name" style="width:150px">
+        <input id="new-ord-phone" placeholder="Phone (optional)" style="width:150px">
+      </div>
+      <div class="row">
+        <select id="new-ord-product" style="flex:1;min-width:180px"></select>
+        <input id="new-ord-qty" type="number" value="1" min="1" style="width:70px">
+        <button class="btn primary" id="new-ord-add">Create order</button>
+      </div>
+      <div id="new-ord-result" style="margin-top:12px"></div>
+    </div>
+    <div class="card">
+      <h2 data-icon="receipt">All orders</h2>
+      <p class="desc">WhatsApp, website and in-store orders share one pipeline, so Delivery and Finance never need to know where an order came from.</p>
+      <div class="tablewrap"><table id="ord-table"><thead><tr><th>Order</th><th>Source</th><th>Customer</th><th>Total (Rs)</th><th>Status</th><th></th></tr></thead><tbody></tbody></table></div>
+    </div>
+  </section>
+
+  <section id="tab-delivery" class="tab">
+    <div class="card section">
+      <h2 data-icon="truck">Dispatch — today's deliveries</h2>
+      <div class="tablewrap"><table id="del-table"><thead><tr><th>Delivery</th><th>Order</th><th>Driver</th><th>Status</th><th>Last GPS ping</th><th>Track</th></tr></thead><tbody></tbody></table></div>
+    </div>
+    <div class="grid cols-2">
+      <div class="card">
+        <h2 data-icon="route">Route sequencing</h2>
+        <p class="desc">Nearest-neighbor, v1 scope — no full optimizer. Demo stops around Port Louis.</p>
+        <button class="btn" id="seq-run">Sequence demo stops</button>
+        <ol id="seq-result" style="margin-top:10px;padding-left:18px"></ol>
+      </div>
+      <div class="card">
+        <h2 data-icon="pin">Customer tracking</h2>
+        <p class="desc">Same GPS feed the driver app writes — this is what replaces hardware fleet tracking.</p>
+        <div class="row"><select id="track-select"></select><button class="btn" id="track-open">Open tracking view</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-finance" class="tab">
+    <div class="card section demo-banner">
+      <p><b>DEMO ONLY</b> — the Profit &amp; Loss, balance sheet and MRA tax figures below are illustrative, built live from this demo's own data so you can see the shape of the reports.</p>
+      <p><b>In the real platform, this is not rebuilt here.</b> Detailed financial statements, tax filing and full bookkeeping stay in <b>Ledger Book</b> — this module only pushes invoice data to it via API, per Section 4 of the platform plan.</p>
+    </div>
+    <div class="grid cols-4 section" id="fin-stats"></div>
+    <div class="grid cols-2">
+      <div class="card section">
+        <h2 data-icon="log">Revenue by payment method</h2>
+        <p class="desc">Every WhatsApp checkout tags its invoice with how it was paid — same Ledger Book records, just grouped here.</p>
+        <div id="fin-methods"></div>
+      </div>
+      <div class="card section">
+        <h2 data-icon="alert">Overdue alerts</h2>
+        <div id="fin-overdue" class="muted">—</div>
+      </div>
+    </div>
+    <div class="card section">
+      <h2 data-icon="wallet">Invoices</h2>
+      <p class="desc">A synced read replica of Ledger Book — not a second source of truth for money.</p>
+      <div class="tablewrap"><table id="fin-invoices"><thead><tr><th>Ledger ID</th><th>Order</th><th>Amount (Rs)</th><th>Method</th><th>Status</th><th>Issued</th><th></th></tr></thead><tbody></tbody></table></div>
+    </div>
+    <div class="card section">
+      <h2 data-icon="box">Purchases &amp; operating expenses</h2>
+      <p class="desc">Purchases are logged automatically whenever you restock in Inventory (at an assumed 55% wholesale cost). Add other expenses manually below.</p>
+      <div class="row" style="margin-bottom:12px">
+        <select id="exp-category">
+          <option>Salaries</option>
+          <option>Rent</option>
+          <option>Utilities</option>
+          <option>Marketing</option>
+          <option>Other</option>
+        </select>
+        <input id="exp-desc" placeholder="Description" style="flex:1;min-width:160px">
+        <input id="exp-amount" type="number" placeholder="Amount (Rs)" style="width:120px">
+        <button class="btn primary" id="exp-add">Add expense</button>
+      </div>
+      <div class="tablewrap"><table id="fin-expenses"><thead><tr><th>When</th><th>Category</th><th>Description</th><th>Amount (Rs)</th></tr></thead><tbody></tbody></table></div>
+    </div>
+    <div class="card section">
+      <h2 data-icon="wallet">Profit &amp; Loss statement</h2>
+      <p class="desc">Revenue from invoices, less Cost of Goods Sold and operating expenses — then MRA-style VAT and corporate tax, same as a real Mauritius small business would file.</p>
+      <div id="fin-pl"></div>
+    </div>
+    <div class="card">
+      <h2 data-icon="log">Balance sheet (snapshot)</h2>
+      <p class="desc">Built live from real demo data — inventory value from the Inventory tab, cash and receivables from actual invoices. No fabricated numbers.</p>
+      <div class="grid cols-2">
+        <div class="stmt-col"><h3 class="eyebrow">Assets</h3><div id="fin-assets"></div></div>
+        <div class="stmt-col"><h3 class="eyebrow">Liabilities &amp; Equity</h3><div id="fin-liab-equity"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-reviews" class="tab">
+    <div class="card section">
+      <h2 data-icon="qr">Generate a review QR</h2>
+      <p class="desc">One QR per completed delivery, linking to a short review form tied to the order.</p>
+      <div class="row"><select id="rev-select"></select><button class="btn primary" id="rev-generate">Generate QR</button></div>
+      <div id="rev-qr" class="qrbox section" style="margin-top:14px"></div>
+    </div>
+    <div class="card"><h2 data-icon="star">Submitted reviews</h2>
+      <div class="tablewrap"><table id="rev-table"><thead><tr><th>Order</th><th>Rating</th><th>Comment</th><th>When</th></tr></thead><tbody></tbody></table></div>
+    </div>
+  </section>
+
+</main>
+</div>
+
+<div id="modal-root"></div>
+
+<script>
+(function(){
+"use strict";
+const { core } = SG;
+function db(){ return SG.db; }
+const $ = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
+const { currentStock, icon, applyIcons, escapeHtml, productNames, customerName, driverName,
+        PAYMENT_METHOD_LABEL, PAYMENT_METHODS, finConfirmAndInvoice, finMarkPaid, invRestock,
+        routeSequence, reviewSubmit, buildMiniMap, buildDeliverySlip, completeOrderPayment,
+        estimateDeliveryText } = SG;
+
+applyIcons();
+
+$$("#tabs button").forEach(btn=>{
+  btn.addEventListener("click", ()=>goTab(btn.dataset.tab));
+});
+function goTab(name){
+  $$("#tabs button").forEach(b=>b.classList.toggle("active", b.dataset.tab===name));
+  $$(".tab").forEach(t=>t.classList.toggle("active", t.id===`tab-${name}`));
+}
+
+function renderOverview(){
+  const orders = db().orders, deliveries = db().deliveries, products = db().products;
+  const stats = [
+    ["Orders total", orders.length, "receipt", "accent"],
+    ["Pending orders", orders.filter(o=>o.status==="pending").length, "alert", "warn"],
+    ["Confirmed revenue (Rs)", orders.filter(o=>o.status==="confirmed"||o.status==="fulfilled").reduce((s,o)=>s+o.total,0), "wallet", "ok"],
+    ["Low-stock products", products.filter(p=>currentStock(p)<=p.reorderThreshold).length, "box", "warn"],
+    ["Active deliveries", deliveries.filter(d=>!["delivered","failed"].includes(d.status)).length, "truck", "info"],
+    ["Reviews collected", db().reviews.length, "star", "ok"],
+    ["Invoices unpaid", db().invoices.filter(i=>i.status==="pending").length, "wallet", "bad"],
+  ];
+  $("#overview-stats").innerHTML = stats.map(([l,v,ic,c])=>`
+    <div class="card stat c-${c}"><div class="stat-top"><div class="label">${l}</div><div class="icon-chip">${icon(ic)}</div></div>
+    <div class="value ${String(v).length>4?'small':''}">${v}</div></div>`).join("");
+
+  $("#flow").innerHTML =
+    `<a class="fnode" href="whatsapp.html" target="_blank">${icon("chat")}<b>WhatsApp / Website / In-store</b><span>Each channel writes a core Order — never a separate table</span></a>`
+    + `<div class="farrow">${icon("arrow")}</div>`
+    + `<button class="fnode" data-flowtab="orders">${icon("receipt")}<b>Core Order</b><span>One shared pipeline for every source</span></button>`
+    + `<div class="farrow">${icon("arrow")}</div>`
+    + `<button class="fnode" data-flowtab="finance">${icon("wallet")}<b>Finance</b><span>Invoices via Ledger Book, one source of truth</span></button>`
+    + `<div class="farrow">${icon("arrow")}</div>`
+    + `<button class="fnode" data-flowtab="delivery">${icon("truck")}<b>Delivery</b><span>Tracked to the door, reviewed after</span></button>`;
+  $$("#flow [data-flowtab]").forEach(btn=>btn.addEventListener("click", ()=>goTab(btn.dataset.flowtab)));
+
+  const hasPending = orders.some(o=>o.status==="pending");
+  const hasConfirmedNoDelivery = orders.some(o=>o.status==="confirmed" && !deliveries.some(d=>d.orderId===o.id));
+  const hasUnassigned = deliveries.some(d=>d.status==="unassigned");
+  const hasAssigned = deliveries.some(d=>["assigned","picked_up","en_route"].includes(d.status));
+  const hasDelivered = deliveries.some(d=>d.status==="delivered");
+  const hasReview = db().reviews.length>0;
+
+  const steps = [
+    {n:1, label:"Send a WhatsApp order", done: orders.length>0, enabled: true, ext:"whatsapp.html"},
+    {n:2, label:"Confirm + invoice", done: db().invoices.length>0, enabled: hasPending, tab:"orders"},
+    {n:3, label:"Create delivery", done: deliveries.length>0, enabled: hasConfirmedNoDelivery, tab:"orders"},
+    {n:4, label:"Assign driver + ping GPS", done: deliveries.some(d=>d.location), enabled: hasUnassigned, tab:"delivery"},
+    {n:5, label:"Mark delivered", done: hasDelivered, enabled: hasAssigned, tab:"delivery"},
+    {n:6, label:"Generate review QR", done: hasReview, enabled: hasDelivered, tab:"reviews"},
+  ];
+  const firstNotDone = steps.find(s=>!s.done);
+  $("#golden-path").innerHTML = steps.map(s=>{
+    const isNext = firstNotDone && s.n===firstNotDone.n;
+    const cls = s.done ? "done" : (isNext ? "next" : "");
+    const num = s.done ? icon("check") : s.n;
+    return `<div class="step ${cls}">
+      <div class="connector"></div>
+      <div class="num">${num}</div>
+      <button class="btn ${isNext?'primary':''} ${s.enabled?'':'dim'}" data-gp="${s.n}">${s.label}</button>
+    </div>`;
+  }).join("");
+  $$("#golden-path [data-gp]").forEach(btn=>btn.addEventListener("click", ()=>runGoldenStep(Number(btn.dataset.gp))));
+}
+
+function gpLog(iconName, title, detailHtml, tabLink, extLink){
+  const feed = $("#gp-feed");
+  let linkHtml = "";
+  if (extLink) linkHtml = `<div class="flink"><a class="linklike" href="${extLink}" target="_blank" style="text-decoration:underline">Open ${extLink.replace('.html','')} ↗</a></div>`;
+  else if (tabLink) linkHtml = `<div class="flink"><button class="linklike" data-goto="${tabLink}">Open ${tabLink[0].toUpperCase()+tabLink.slice(1)} tab ↗</button></div>`;
+  const card = document.createElement("div");
+  card.className = "feedcard";
+  card.innerHTML = `<div class="ficon">${icon(iconName)}</div><div class="fbody"><div class="ftitle">${title}</div><div class="fdetail">${detailHtml}</div>${linkHtml}</div>`;
+  feed.insertBefore(card, feed.firstChild);
+  card.querySelector("[data-goto]")?.addEventListener("click", (e)=>goTab(e.target.dataset.goto));
+  while(feed.children.length > 6) feed.removeChild(feed.lastChild);
+}
+function gpBlocked(msg){ gpLog("alert", "Nothing to do yet", msg, null); }
+
+function runGoldenStep(n){
+  const orders = db().orders, deliveries = db().deliveries;
+  if(n===1){ window.open("whatsapp.html", "_blank"); return; }
+  if(n===2){
+    const order = orders.find(o=>o.status==="pending");
+    if(!order){ gpBlocked("No pending order right now — open the WhatsApp app (step 1) to create one."); return; }
+    const {invoice} = finConfirmAndInvoice(order.id);
+    gpLog("wallet", "Order confirmed + invoiced", `Order <span class="mono">${order.id}</span> confirmed — stock deducted, invoice <span class="mono">${invoice.ledgerId}</span> issued for Rs ${invoice.amount} via Ledger Book.`, "finance");
+  } else if(n===3){
+    const order = orders.find(o=>o.status==="confirmed" && !deliveries.some(d=>d.orderId===o.id));
+    if(!order){ gpBlocked("No confirmed order is waiting on a delivery — run step 2 (confirm + invoice) first."); return; }
+    const delivery = core.createDelivery({orderId: order.id});
+    const customer = db().customers.find(c=>c.id===order.customerId);
+    const feed = $("#gp-feed");
+    const card = document.createElement("div");
+    card.className = "feedcard";
+    card.innerHTML = `<div class="ficon">${icon("truck")}</div><div class="fbody">
+      <div class="ftitle">Delivery created</div>
+      <div class="fdetail">A delivery note like this is what would print at pack time, or attach to the order for the driver app to pick up.</div>
+      ${buildDeliverySlip(delivery, order, customer)}
+      <div class="flink"><button class="linklike" data-goto="delivery">Open Delivery tab ↗</button></div>
+    </div>`;
+    feed.insertBefore(card, feed.firstChild);
+    card.querySelector("[data-goto]")?.addEventListener("click", (e)=>goTab(e.target.dataset.goto));
+    while(feed.children.length > 6) feed.removeChild(feed.lastChild);
+  } else if(n===4){
+    const delivery = deliveries.find(d=>d.status==="unassigned");
+    if(!delivery){ gpBlocked("No unassigned delivery right now — run step 3 (create delivery) first."); return; }
+    const drivers = core.listUsers("driver");
+    const driver = drivers[SG.bumpDriverRotation() % drivers.length];
+    core.assignDriver(delivery.id, driver.id);
+    const lat = -20.1609+(Math.random()-0.5)*0.05, lng = 57.5012+(Math.random()-0.5)*0.05;
+    core.pingLocation(delivery.id, lat, lng);
+    gpLog("pin", "Driver assigned + GPS ping received", `${driver.name} assigned to <span class="mono">${delivery.id}</span> — live location ${lat.toFixed(4)}, ${lng.toFixed(4)}. Open the Driver app to see it from their side.`, "delivery", "driver.html");
+  } else if(n===5){
+    const delivery = deliveries.find(d=>["assigned","picked_up","en_route"].includes(d.status));
+    if(!delivery){ gpBlocked("No delivery is currently out for drop-off — run step 4 (assign driver) first, or mark it delivered from the Driver app."); return; }
+    core.updateDeliveryStatus(delivery.id, "delivered");
+    gpLog("check", "Marked as delivered", `Delivery <span class="mono">${delivery.id}</span> is now delivered — proof-of-delivery was auto-captured and the order flipped to <b>fulfilled</b>, visible immediately in Orders.`, "orders");
+  } else if(n===6){
+    const delivery = deliveries.find(d=>d.status==="delivered");
+    if(!delivery){ gpBlocked("No delivered order yet — run step 5 (mark delivered) first."); return; }
+    const feed = $("#gp-feed");
+    const card = document.createElement("div");
+    card.className = "feedcard";
+    const qrId = `gpqr-${Date.now()}`;
+    card.innerHTML = `<div class="ficon">${icon("qr")}</div><div class="fbody"><div class="ftitle">Review QR generated</div><div class="fdetail">One QR per completed delivery — printed on the note or sent via WhatsApp after delivery.</div><div class="fqr" id="${qrId}"></div></div>`;
+    feed.insertBefore(card, feed.firstChild);
+    new QRCode(document.getElementById(qrId), {text: location.href.split('#')[0] + `#review:${delivery.id}`, width:120, height:120});
+    while(feed.children.length > 6) feed.removeChild(feed.lastChild);
+  }
+  renderAll();
+}
+
+function renderInventory(){
+  $("#inv-products tbody").innerHTML = db().products.map(p=>{
+    const stock = currentStock(p);
+    const low = stock<=p.reorderThreshold;
+    return `<tr>
+    <td><img src="${p.img}" class="inv-thumb" alt=""></td>
+    <td>${p.name}</td><td>${p.location}</td>
+    <td><input type="number" value="${p.price}" data-price="${p.id}" style="width:75px"></td>
+    <td>${p.warehouseStock}</td>
+    <td>${p.received>0?'+':''}${p.received}</td>
+    <td>${p.sold}</td>
+    <td><b class="${low?'inv-low-num':''}">${stock}</b></td>
+    <td>${p.reorderThreshold}</td>
+    <td><input type="number" value="10" min="1" data-restock-qty="${p.id}" style="width:55px"> <button class="btn small" data-restock="${p.id}">Restock</button></td>
+  </tr>`;
+  }).join("");
+  $$("#inv-products [data-price]").forEach(inp=>inp.addEventListener("change", e=>{ core.updateProductPrice(e.target.dataset.price, Number(e.target.value)); renderAll(); }));
+  $$("#inv-products [data-restock]").forEach(btn=>btn.addEventListener("click", e=>{
+    const id = e.target.dataset.restock;
+    const qtyInput = $(`[data-restock-qty="${id}"]`);
+    invRestock(id, Math.max(1, Number(qtyInput.value)||10)); renderAll();
+  }));
+  const low = db().products.filter(p=>currentStock(p)<=p.reorderThreshold);
+  $("#inv-low").innerHTML = low.length ? low.map(p=>`<span class="badge unassigned">${p.name}: ${currentStock(p)} left</span>`).join(" ") : "No low-stock products.";
+  $("#inv-audit tbody").innerHTML = db().stockAudit.slice().reverse().slice(0,15).map(a=>{
+    const p = db().products.find(p=>p.id===a.productId);
+    return `<tr><td>${new Date(a.at).toLocaleTimeString()}</td><td>${p?p.name:a.productId}</td><td>${a.change>0?"+":""}${a.change}</td><td class="muted">${a.reason}</td></tr>`;
+  }).join("") || `<tr><td colspan="4" class="muted">No stock movements yet.</td></tr>`;
+}
+
+function renderOrders(){
+  const prodSel = $("#new-ord-product");
+  const prevProd = prodSel.value;
+  prodSel.innerHTML = db().products.map(p=>`<option value="${p.id}">${p.name} — Rs ${p.price} (${currentStock(p)} in stock)</option>`).join("");
+  if(prevProd && db().products.some(p=>p.id===prevProd)) prodSel.value = prevProd;
+
+  $("#ord-table tbody").innerHTML = db().orders.slice().reverse().map(o=>{
+    const delivery = db().deliveries.find(d=>d.orderId===o.id);
+    let action;
+    if(o.status==="pending"){ action = `<button class="btn small primary" data-confirm="${o.id}">Confirm + invoice</button>`; }
+    else if(o.status==="fulfilled"){ action = `<button class="linklike" data-proof="${delivery?delivery.id:''}">${icon("check")} Proof captured — view ↗</button>`; }
+    else if(delivery){ action = `<button class="linklike" data-track="${delivery.id}">${icon("pin")} Track ↗</button>`; }
+    else { action = `<button class="btn small" data-mkdel="${o.id}">Create delivery</button>`; }
+    return `<tr>
+      <td class="mono">${o.id}</td><td>${o.source}</td><td>${customerName(o.customerId)}</td><td>${o.total}</td>
+      <td><span class="badge ${o.status}">${o.status}</span></td><td>${action}</td></tr>`;
+  }).join("") || `<tr><td colspan="6" class="muted">No orders yet.</td></tr>`;
+  $$("#ord-table [data-confirm]").forEach(btn=>btn.addEventListener("click", e=>{ finConfirmAndInvoice(e.target.dataset.confirm); renderAll(); }));
+  $$("#ord-table [data-mkdel]").forEach(btn=>btn.addEventListener("click", e=>{ core.createDelivery({orderId:e.target.dataset.mkdel}); renderAll(); goTab("delivery"); }));
+  $$("#ord-table [data-track]").forEach(btn=>btn.addEventListener("click", e=>openTracking(e.target.closest("[data-track]").dataset.track)));
+  $$("#ord-table [data-proof]").forEach(btn=>btn.addEventListener("click", e=>openTracking(e.target.closest("[data-proof]").dataset.proof)));
+}
+
+function renderDelivery(){
+  const drivers = core.listUsers("driver");
+  $("#del-table tbody").innerHTML = db().deliveries.slice().reverse().map(d=>{
+    const order = core.getOrder(d.orderId);
+    const driverOpts = `<option value="">—</option>` + drivers.map(dr=>`<option value="${dr.id}" ${d.driverId===dr.id?"selected":""}>${dr.name}</option>`).join("");
+    const statusOpts = ["unassigned","assigned","picked_up","en_route","delivered","failed"].map(s=>`<option value="${s}" ${d.status===s?"selected":""}>${s}</option>`).join("");
+    return `<tr>
+      <td class="mono">${d.id}</td><td class="mono">${order?order.id:d.orderId}</td>
+      <td><select data-assign="${d.id}">${driverOpts}</select></td>
+      <td><select data-status="${d.id}">${statusOpts}</select></td>
+      <td>${d.location?`${d.location.lat.toFixed(3)}, ${d.location.lng.toFixed(3)} <span class="muted">@ ${new Date(d.location.at).toLocaleTimeString()}</span>`:"—"} <button class="btn small" data-ping="${d.id}">Ping</button></td>
+      <td><button class="linklike" data-track="${d.id}">Open ↗</button></td></tr>`;
+  }).join("") || `<tr><td colspan="6" class="muted">No deliveries yet.</td></tr>`;
+  $$("#del-table [data-assign]").forEach(sel=>sel.addEventListener("change", e=>{ if(e.target.value) core.assignDriver(e.target.dataset.assign, e.target.value); renderAll(); }));
+  $$("#del-table [data-status]").forEach(sel=>sel.addEventListener("change", e=>{ core.updateDeliveryStatus(e.target.dataset.status, e.target.value); renderAll(); }));
+  $$("#del-table [data-ping]").forEach(btn=>btn.addEventListener("click", e=>{
+    const lat=-20.1609+(Math.random()-0.5)*0.05, lng=57.5012+(Math.random()-0.5)*0.05;
+    core.pingLocation(e.target.dataset.ping, lat, lng); renderAll();
+  }));
+  $$("#del-table [data-track]").forEach(btn=>btn.addEventListener("click", e=>openTracking(e.target.dataset.track)));
+  $("#track-select").innerHTML = db().deliveries.map(d=>`<option value="${d.id}">${d.id}</option>`).join("") || `<option value="">No deliveries</option>`;
+}
+
+$("#seq-run").addEventListener("click", ()=>{
+  const stops = [
+    {id:"A",lat:-20.1609,lng:57.5012},{id:"B",lat:-20.235,lng:57.4938},{id:"C",lat:-20.1015,lng:57.5183},
+    {id:"D",lat:-20.3,lng:57.4767},{id:"E",lat:-20.1444,lng:57.4988},
+  ];
+  const seqd = routeSequence(stops);
+  $("#seq-result").innerHTML = seqd.map(s=>`<li>Stop ${s.id} (${s.lat.toFixed(3)}, ${s.lng.toFixed(3)})</li>`).join("");
+});
+$("#track-open").addEventListener("click", ()=>{ const id=$("#track-select").value; if(id) openTracking(id); });
+
+function renderFinance(){
+  const invoices = db().invoices;
+  const paid = invoices.filter(i=>i.status==="paid");
+  const pending = invoices.filter(i=>i.status==="pending");
+  const totalRevenue = invoices.reduce((s,i)=>s+i.amount,0);
+  const totalPaid = paid.reduce((s,i)=>s+i.amount,0);
+  const totalPending = pending.reduce((s,i)=>s+i.amount,0);
+  const cutoff = 1000*60*60*24*7;
+  const overdue = pending.filter(i=>Date.now()-new Date(i.issuedAt).getTime()>cutoff);
+  const totalOverdue = overdue.reduce((s,i)=>s+i.amount,0);
+
+  $("#fin-stats").innerHTML = [
+    ["Total revenue (Rs)", totalRevenue, "wallet", "accent"],
+    ["Collected (Rs)", totalPaid, "check", "ok"],
+    ["Outstanding (Rs)", totalPending, "receipt", "warn"],
+    ["Overdue (Rs)", totalOverdue, "alert", "bad"],
+  ].map(([l,v,ic,c])=>`<div class="card stat c-${c}"><div class="stat-top"><div class="label">${l}</div><div class="icon-chip">${icon(ic)}</div></div><div class="value ${String(v).length>6?'small':''}">${v}</div></div>`).join("");
+
+  const methodTotals = {};
+  invoices.forEach(i=>{ const key=i.method||"null"; methodTotals[key]=(methodTotals[key]||0)+i.amount; });
+  const maxMethod = Math.max(1, ...Object.values(methodTotals));
+  const methodKeys = Object.keys(methodTotals);
+  $("#fin-methods").innerHTML = methodKeys.length ? methodKeys.map(k=>`
+    <div class="method-row"><div class="m-label">${PAYMENT_METHOD_LABEL[k]}</div>
+    <div class="m-bar-wrap"><div class="m-bar" style="width:${(methodTotals[k]/maxMethod*100).toFixed(0)}%"></div></div>
+    <div class="m-amt">Rs ${methodTotals[k]}</div></div>`).join("") : `<p class="muted">No paid or pending invoices yet.</p>`;
+
+  $("#fin-invoices tbody").innerHTML = invoices.slice().reverse().map(i=>`<tr>
+    <td class="mono">${i.ledgerId}</td><td class="mono">${i.orderId}</td><td>${i.amount}</td>
+    <td>${PAYMENT_METHOD_LABEL[i.method||"null"]}</td>
+    <td><span class="badge ${i.status}">${i.status}</span></td><td>${new Date(i.issuedAt).toLocaleString()}</td>
+    <td>${i.status==="pending"?`<button class="btn small" data-pay="${i.ledgerId}">Mark paid</button>`:""}</td></tr>`).join("") || `<tr><td colspan="7" class="muted">No invoices yet.</td></tr>`;
+  $$("#fin-invoices [data-pay]").forEach(btn=>btn.addEventListener("click", e=>{ finMarkPaid(e.target.dataset.pay); renderAll(); }));
+  $("#fin-overdue").textContent = overdue.length ? `${overdue.length} invoice(s) overdue, totalling Rs ${totalOverdue}.` : "No overdue invoices.";
+
+  const expenses = db().expenses;
+  $("#fin-expenses tbody").innerHTML = expenses.slice().reverse().map(e=>`<tr><td>${new Date(e.at).toLocaleDateString()}</td><td>${e.category}</td><td>${e.description}</td><td>${e.amount}</td></tr>`).join("") || `<tr><td colspan="4" class="muted">No expenses logged yet.</td></tr>`;
+
+  const salesRevenue = totalRevenue;
+  const purchases = expenses.filter(e=>e.category==="Purchases").reduce((s,e)=>s+e.amount,0);
+  const grossProfit = salesRevenue - purchases;
+  const opexCats = ["Salaries","Rent","Utilities","Marketing","Other"];
+  const opexByCat = {};
+  opexCats.forEach(c=> opexByCat[c] = expenses.filter(e=>e.category===c).reduce((s,e)=>s+e.amount,0));
+  const opexTotal = Object.values(opexByCat).reduce((s,v)=>s+v,0);
+  const netProfitBeforeTax = grossProfit - opexTotal;
+  const vatRate = 0.15, corpTaxRate = 0.15;
+  const vatCollected = Math.round(salesRevenue * vatRate/(1+vatRate));
+  const corporateTax = netProfitBeforeTax>0 ? Math.round(netProfitBeforeTax*corpTaxRate) : 0;
+  const netProfitAfterTax = netProfitBeforeTax - corporateTax;
+
+  $("#fin-pl").innerHTML = `
+    <h3 class="eyebrow">Revenue</h3>
+    <div class="stmt-row"><span class="muted">Sales revenue (all invoices)</span><span>Rs ${salesRevenue}</span></div>
+    <h3 class="eyebrow">Cost of goods sold</h3>
+    <div class="stmt-row"><span class="muted">Purchases (stock received, at cost)</span><span>Rs ${purchases}</span></div>
+    <div class="stmt-row total"><span>Gross profit</span><span>Rs ${grossProfit}</span></div>
+    <h3 class="eyebrow">Operating expenses</h3>
+    ${opexCats.map(c=>`<div class="stmt-row"><span class="muted">${c}</span><span>Rs ${opexByCat[c]}</span></div>`).join("")}
+    <div class="stmt-row total"><span>Total operating expenses</span><span>Rs ${opexTotal}</span></div>
+    <div class="stmt-row total"><span>Net profit before tax</span><span>Rs ${netProfitBeforeTax}</span></div>
+    <h3 class="eyebrow">MRA — Mauritius Revenue Authority</h3>
+    <div class="stmt-row"><span class="muted">VAT collected (15%, payable to MRA)</span><span>Rs ${vatCollected}</span></div>
+    <div class="stmt-row"><span class="muted">Corporate tax provision (15% of net profit)</span><span>Rs ${corporateTax}</span></div>
+    <div class="stmt-row total"><span>Net profit after tax</span><span>Rs ${netProfitAfterTax}</span></div>`;
+
+  const inventoryValue = db().products.reduce((s,p)=>s+p.price*currentStock(p),0);
+  const cash = totalPaid - expenses.reduce((s,e)=>s+e.amount,0);
+  const receivables = totalPending;
+  const totalAssets = inventoryValue + cash + receivables;
+  const totalLiabilities = 0;
+  const equity = totalAssets - totalLiabilities;
+  $("#fin-assets").innerHTML = `
+    <div class="stmt-row"><span class="muted">Cash (collected − expenses paid)</span><span>Rs ${cash}</span></div>
+    <div class="stmt-row"><span class="muted">Accounts receivable</span><span>Rs ${receivables}</span></div>
+    <div class="stmt-row"><span class="muted">Inventory value (at retail)</span><span>Rs ${inventoryValue}</span></div>
+    <div class="stmt-row total"><span>Total assets</span><span>Rs ${totalAssets}</span></div>`;
+  $("#fin-liab-equity").innerHTML = `
+    <div class="stmt-row"><span class="muted">Accounts payable</span><span>Rs 0</span></div>
+    <div class="stmt-row"><span class="muted">Total liabilities</span><span>Rs ${totalLiabilities}</span></div>
+    <div class="stmt-row"><span class="muted">Owner's equity</span><span>Rs ${equity}</span></div>
+    <div class="stmt-row total"><span>Total liabilities + equity</span><span>Rs ${totalLiabilities + equity}</span></div>`;
+}
+function finAddExpense(category, description, amount){
+  if(!description || !amount || amount<=0) return;
+  db().expenses.push({id:SG.nextId("exp"), category, description, amount:Math.round(amount), at:SG.nowISO()});
+  SG.saveDB();
+}
+$("#exp-add").addEventListener("click", ()=>{
+  finAddExpense($("#exp-category").value, $("#exp-desc").value.trim(), Number($("#exp-amount").value));
+  $("#exp-desc").value = ""; $("#exp-amount").value = "";
+  renderAll();
+});
+
+function renderReviews(){
+  const delivered = db().deliveries.filter(d=>d.status==="delivered");
+  $("#rev-select").innerHTML = delivered.map(d=>`<option value="${d.id}">${d.id} (order ${d.orderId})</option>`).join("") || `<option value="">No delivered orders yet</option>`;
+  $("#rev-table tbody").innerHTML = db().reviews.slice().reverse().map(r=>`<tr>
+    <td class="mono">${r.orderId}</td><td>${"★".repeat(r.rating)}${"☆".repeat(5-r.rating)}</td>
+    <td>${escapeHtml(r.comment)}</td><td>${new Date(r.at).toLocaleString()}</td></tr>`).join("") || `<tr><td colspan="4" class="muted">No reviews yet.</td></tr>`;
+}
+$("#rev-generate").addEventListener("click", ()=>{
+  const id = $("#rev-select").value; if(!id) return;
+  const url = `#review:${id}`;
+  const box = $("#rev-qr");
+  box.innerHTML = `<div class="qrimg" id="qr-target"></div><div><p class="muted">Scan or open the review link:</p><button class="linklike" id="qr-openlink">${url}</button></div>`;
+  new QRCode(document.getElementById("qr-target"), {text: location.href.split('#')[0] + url, width:180, height:180});
+});
+
+let openTrackingId = null;
+function openTracking(deliveryId){
+  openTrackingId = deliveryId;
+  const d = core.getDelivery(deliveryId); if(!d) return;
+  const order = core.getOrder(d.orderId);
+  const driver = d.driverId ? driverName(d.driverId) : "Not yet assigned";
+  const loc = d.location ? `${d.location.lat.toFixed(4)}, ${d.location.lng.toFixed(4)} <span class="muted">· as of ${new Date(d.location.at).toLocaleTimeString()}</span>` : "Not available yet";
+  const proofLine = d.proof
+    ? `<p>${icon("check")} <b>Proof of delivery:</b> captured ${new Date(d.proof.at).toLocaleString()} <span class="muted">(${d.proof.note})</span></p>`
+    : (d.status==="delivered" ? `` : `<p class="muted">Proof of delivery is captured automatically once the order is marked delivered.</p>`);
+  showModal(`
+    <h2>Track this order</h2>
+    <p class="desc">This is the page a customer opens from a WhatsApp link or the website — it reads the same GPS feed the driver app writes.</p>
+    ${buildMiniMap(d.location?.lat, d.location?.lng, d.status!=="delivered")}
+    <p style="margin-top:12px"><b>Order</b> <span class="mono">${order?order.id:d.orderId}</span></p>
+    <p><span class="badge ${d.status}">${d.status.replace("_"," ")}</span> ${order && order.status==="fulfilled" ? `<span class="badge fulfilled">order fulfilled</span>` : ""}</p>
+    <p><b>Driver:</b> ${driver}</p>
+    <p><b>Last known location:</b><br>${loc}</p>
+    ${proofLine}
+  `);
+}
+function showModal(innerHtml){
+  $("#modal-root").innerHTML = `
+    <div style="position:fixed;inset:0;background:rgba(20,18,14,.5);z-index:50;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto" id="modal-overlay">
+      <div class="card modalcard" style="width:100%">${innerHtml}
+        <div style="margin-top:14px;text-align:right"><button class="btn" id="modal-close">Close</button></div>
+      </div></div>`;
+  $("#modal-overlay").addEventListener("click", (e)=>{ if(e.target.id==="modal-overlay") closeModal(); });
+  $("#modal-close").addEventListener("click", closeModal);
+}
+function closeModal(){ $("#modal-root").innerHTML = ""; openTrackingId = null; }
+
+function ordShowPaymentOptions(order){
+  const box = $("#new-ord-result");
+  const wrap = document.createElement("div");
+  wrap.className = "row"; wrap.style.marginBottom = "10px";
+  PAYMENT_METHODS.forEach(([m,label])=>{
+    const btn = document.createElement("button");
+    btn.className = "btn small primary"; btn.textContent = label;
+    btn.addEventListener("click", ()=>{ wrap.remove(); ordCompletePayment(order, m); });
+    wrap.appendChild(btn);
+  });
+  box.innerHTML = `<p class="desc" style="margin-bottom:8px">Order <span class="mono">${order.id}</span> created for <b>${customerName(order.customerId)}</b>, Rs ${order.total}. How did they pay?</p>`;
+  box.appendChild(wrap);
+}
+function ordCompletePayment(order, method){
+  const {invoice, delivery, driver, eta, methodLabel, status} = completeOrderPayment(order, method);
+  const box = $("#new-ord-result");
+  const card = document.createElement("div");
+  card.className = "feedcard";
+  card.innerHTML = `<div class="ficon">${icon("wallet")}</div><div class="fbody">
+    <div class="ftitle">Invoice ${invoice.ledgerId} · ${status}</div>
+    <div class="fdetail">Order <span class="mono">${order.id}</span> (${order.source}) paid via ${methodLabel}. Delivery <span class="mono">${delivery.id}</span> created and assigned to <b>${driver.name}</b> — est. delivery ${eta}.</div>
+    <div class="flink"><a class="linklike" href="driver.html" target="_blank" style="text-decoration:underline">Open Driver App ↗</a> <button class="linklike" data-goto="delivery">Open Delivery tab ↗</button></div>
+  </div>`;
+  box.innerHTML = ""; box.appendChild(card);
+  card.querySelectorAll("[data-goto]").forEach(b=>b.addEventListener("click", e=>goTab(e.target.dataset.goto)));
+  renderAll();
+}
+$("#new-ord-add").addEventListener("click", ()=>{
+  const source = $("#new-ord-source").value;
+  const name = $("#new-ord-customer").value.trim();
+  const phone = $("#new-ord-phone").value.trim() || `${source}-${Date.now()}`;
+  const productId = $("#new-ord-product").value;
+  const qty = Math.max(1, Number($("#new-ord-qty").value)||1);
+  if(!name || !productId) return;
+  const customer = core.findOrCreateCustomer({name, phone});
+  const order = core.createOrder({customerId: customer.id, items:[{productId, qty}], source, status:"pending"});
+  $("#new-ord-customer").value = ""; $("#new-ord-phone").value = ""; $("#new-ord-qty").value = "1";
+  ordShowPaymentOptions(order);
+  renderAll();
+});
+
+function resetDemo(){
+  SG.resetDB();
+  $("#gp-feed").innerHTML = ""; $("#rev-qr").innerHTML = ""; $("#seq-result").innerHTML = ""; $("#new-ord-result").innerHTML = "";
+  goTab("overview");
+  renderAll();
+}
+$("#reset-demo").addEventListener("click", resetDemo);
+
+function renderAll(){
+  renderOverview(); renderInventory(); renderOrders(); renderDelivery(); renderFinance(); renderReviews();
+  applyIcons();
+}
+window.addEventListener("sg:db-changed", renderAll);
+
+renderAll();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Season Gift — WhatsApp</title>
+<meta name="description" content="Simulated WhatsApp AI storefront for Season Gift — reads live prices and stock from the same core as the Admin dashboard." />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="style.css">
+<script src="core.js"></script>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="mark">SG</div>
+  <div>
+    <h1>WhatsApp AI</h1>
+    <div class="tag">What a customer sees &amp; types — orders here land straight in the Admin dashboard</div>
+  </div>
+  <div class="spacer"></div>
+  <nav class="applinks">
+    <a href="admin.html">Admin</a>
+    <a href="whatsapp.html" class="current">WhatsApp</a>
+    <a href="driver.html">Driver App</a>
+  </nav>
+  <div class="livebadge"><span class="dot"></span> Demo data, shared via this browser</div>
+</div>
+
+<main class="wrap" style="padding-top:22px">
+  <div class="driverpane">
+    <div>
+      <div class="row" style="margin-bottom:12px">
+        <input id="wa-phone" placeholder="+230 5xxx xxxx" value="+230 5123 4567" style="width:150px">
+        <input id="wa-name" placeholder="Customer name" value="Anushka" style="width:110px">
+      </div>
+      <div class="phone wa-phone">
+        <div class="pnotch"></div>
+        <div class="pscreen wa-pscreen">
+          <div class="wa-phone-header">
+            <div class="wa-phone-avatar">S</div>
+            <div><div class="wa-phone-name">Season Gift</div><div class="wa-phone-status">online</div></div>
+            <button class="wa-phone-shop" id="wa-shop-btn" title="View catalogue">🎁</button>
+          </div>
+          <div class="wa-phone-body" id="wa-chat"></div>
+          <div class="wa-phone-inputbar">
+            <input id="wa-message" placeholder="Type a message" value="Hi, I'd like 2 chocolate box deluxe please">
+            <button class="wa-phone-send" id="wa-send">➤</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <h3 class="eyebrow">WhatsApp AI Agent</h3>
+      <p class="desc">Simulated webhook + AI parser. Reads live prices &amp; stock from the core Product entity — the exact same data the Admin dashboard's Inventory tab edits.</p>
+      <div class="card section">
+        <h2 data-icon="receipt" style="font-size:14px">Leads → core Orders</h2>
+        <p class="desc" style="margin-bottom:10px">Every match becomes a "pending" Order on the core Customer/Order tables. Open the <a href="admin.html" target="_blank" style="color:var(--accent)">Admin dashboard</a> in another tab to watch it arrive live.</p>
+        <div class="tablewrap"><table id="wa-leads"><thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th></tr></thead><tbody></tbody></table></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div id="modal-root"></div>
+
+<script>
+(function(){
+"use strict";
+const { core } = SG;
+function db(){ return SG.db; }
+const $ = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
+const { icon, applyIcons, escapeHtml, customerName, productNames, currentStock,
+        PAYMENT_METHOD_LABEL, PAYMENT_METHODS, completeOrderPayment, estimateDeliveryText,
+        waSimulate, initials } = SG;
+
+applyIcons();
+
+function renderWhatsapp(){
+  const leads = db().orders.filter(o=>o.source==="whatsapp");
+  $("#wa-leads tbody").innerHTML = leads.map(o=>`<tr>
+    <td class="mono">${o.id}</td><td>${customerName(o.customerId)}</td><td>${productNames(o.items)}</td>
+    <td>${o.total}</td><td><span class="badge ${o.status}">${o.status}</span></td></tr>`).join("")
+    || `<tr><td colspan="5" class="muted">No leads yet — send a message.</td></tr>`;
+}
+
+function showModal(innerHtml){
+  $("#modal-root").innerHTML = `
+    <div style="position:fixed;inset:0;background:rgba(20,18,14,.5);z-index:50;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto" id="modal-overlay">
+      <div class="card modalcard" style="width:100%">${innerHtml}
+        <div style="margin-top:14px;text-align:right"><button class="btn" id="modal-close">Close</button></div>
+      </div></div>`;
+  $("#modal-overlay").addEventListener("click", (e)=>{ if(e.target.id==="modal-overlay") closeModal(); });
+  $("#modal-close").addEventListener("click", closeModal);
+}
+function closeModal(){ $("#modal-root").innerHTML = ""; }
+
+function waShowPaymentOptions(order){
+  const chat = $("#wa-chat");
+  const wrap = document.createElement("div");
+  wrap.className = "chatrow";
+  wrap.innerHTML = `<div class="avatar">SG</div><div class="row" style="max-width:78%"></div>`;
+  const actions = wrap.querySelector(".row");
+  PAYMENT_METHODS.forEach(([m,label])=>{
+    const btn = document.createElement("button");
+    btn.className = "btn small primary";
+    btn.textContent = label;
+    btn.addEventListener("click", ()=>{ wrap.remove(); waCompletePayment(order, m); });
+    actions.appendChild(btn);
+  });
+  chat.appendChild(wrap);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function waCompletePayment(order, method){
+  const {invoice, delivery, driver, eta, methodLabel, status} = completeOrderPayment(order, method);
+  const customer = db().customers.find(c=>c.id===order.customerId);
+  const pushNote = method==="push" ? `A payment request was pushed to <span class="mono">${customer?customer.phone:"the customer's phone"}</span> — approved on their end.<br>` : "";
+
+  const chat = $("#wa-chat");
+  const card = document.createElement("div");
+  card.className = "feedcard";
+  card.innerHTML = `<div class="ficon">${icon("wallet")}</div><div class="fbody">
+    <div class="ftitle">Invoice ${invoice.ledgerId} · ${status}</div>
+    <div class="fdetail">${pushNote}Paid via ${methodLabel}. Delivery <span class="mono">${delivery.id}</span> created and assigned to <b>${driver.name}</b> — est. delivery ${eta}.</div>
+    <div class="flink"><a class="linklike" href="driver.html" target="_blank" style="text-decoration:underline">Open Driver App ↗</a> <a class="linklike" href="admin.html" target="_blank" style="text-decoration:underline">Open Admin dashboard ↗</a></div>
+  </div>`;
+  chat.appendChild(card);
+  chat.scrollTop = chat.scrollHeight;
+  renderWhatsapp();
+}
+
+function waSendMessage(overrideText){
+  const phone = $("#wa-phone").value.trim(), name = $("#wa-name").value.trim();
+  const message = (overrideText!=null ? overrideText : $("#wa-message").value).trim();
+  if(!phone || !message) return;
+  const chat = $("#wa-chat");
+  const time = new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
+  chat.insertAdjacentHTML("beforeend", `
+    <div class="chatrow me">
+      <div class="avatar">${initials(name||phone)}</div>
+      <div class="bubble me">${escapeHtml(message)}<span class="meta">${time} <span class="ticks">✓✓</span></span></div>
+    </div>`);
+  const result = waSimulate({phone, name, message});
+  chat.insertAdjacentHTML("beforeend", `
+    <div class="chatrow">
+      <div class="avatar">SG</div>
+      <div class="bubble">${escapeHtml(result.reply)}<span class="meta">${time} · Season Gift AI</span></div>
+    </div>`);
+  chat.scrollTop = chat.scrollHeight;
+  if(result.order) waShowPaymentOptions(result.order);
+  $("#wa-message").value = "";
+  renderWhatsapp();
+}
+$("#wa-send").addEventListener("click", ()=>waSendMessage());
+$("#wa-message").addEventListener("keydown", e=>{ if(e.key==="Enter") waSendMessage(); });
+
+function waBoot(){
+  const chat = $("#wa-chat");
+  if(chat.children.length>0) return;
+  const time = new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
+  chat.insertAdjacentHTML("beforeend", `
+    <div class="chatrow">
+      <div class="avatar">SG</div>
+      <div class="bubble">Hi there! 👋 Welcome to Season Gift. I can help with prices, stock and delivery — what are you shopping for today?<span class="meta">${time} · Season Gift AI</span></div>
+    </div>`);
+  const suggest = document.createElement("div");
+  suggest.className = "wa-suggest";
+  [
+    ["🎁 Browse catalogue", null],
+    ["Do you have chocolate box deluxe?", "Do you have chocolate box deluxe?"],
+    ["Price of the Gift Hamper?", "How much is the Gift Hamper Classic?"],
+  ].forEach(([label, msg])=>{
+    const b = document.createElement("button");
+    b.textContent = label;
+    b.addEventListener("click", ()=>{ msg ? waSendMessage(msg) : openWaCatalog(); });
+    suggest.appendChild(b);
+  });
+  chat.appendChild(suggest);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function openWaCatalog(){
+  const products = core.listProducts();
+  const grid = products.map(p=>{
+    const stock = currentStock(p);
+    return `<button class="wa-catalog-item" data-prod="${p.id}">
+      <img src="${p.img}" class="ci-img" alt="">
+      <div class="ci-name">${p.name}</div>
+      <div class="ci-price">Rs ${p.price}</div>
+      <div class="ci-stock">${stock>0 ? stock+" in stock" : "Out of stock"}</div>
+    </button>`;
+  }).join("");
+  showModal(`
+    <h2 data-icon="chat">Season Gift catalogue</h2>
+    <p class="desc">Same core Product entity the Admin dashboard's Inventory tab reads — tap one to ask about it in the chat.</p>
+    <div class="wa-catalog-grid">${grid}</div>
+  `);
+  applyIcons();
+  $$("[data-prod]").forEach(btn=>btn.addEventListener("click", e=>{
+    const p = products.find(p=>p.id===e.target.closest("[data-prod]").dataset.prod);
+    closeModal();
+    waSendMessage(`Hi, I'd like 1 ${p.name}`);
+  }));
+}
+$("#wa-shop-btn").addEventListener("click", openWaCatalog);
+
+window.addEventListener("sg:db-changed", renderWhatsapp);
+
+waBoot();
+renderWhatsapp();
+})();
+</script>
+</body>
+</html>
